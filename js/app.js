@@ -1,10 +1,12 @@
 // 1. Dades base deduïdes del teu JSON (ITB Leaks)
 // A la pràctica real, pots fer un fetch('data/dataclean.json') per carregar-ho dinàmicament.
+// 1. Dades base ajustades EXACTAMENT al JSON de l'institut (ITB Leaks)
 const dadesBase = {
-    electricitat: 350, // Mitjana kWh per dia laborable estimat
-    aigua: 5000,       // Mitjana litres per dia laborable
-    oficina: 300,      // Mitjana € al mes
-    neteja: 150        // Mitjana € al mes
+    electricitat: 315,    // Mitjana de kWh/dia segons lectures "PV Electricity"
+    aigua: 6245,          // Mitjana de L/dia segons lectures (7035, 7400, 4300)
+    oficina: 85.13,       // Ajustat per donar un total anual exacte de 902,44 €
+    neteja: 110.55,       // Ajustat per donar un total anual exacte de 1.204,98 €
+    manteniment: 325.79   // Ajustat per donar un total anual exacte de 3.909,47 €
 };
 
 // 2. Multiplicadors d'Estacionalitat i Tendències (Gener a Desembre)
