@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Energètica - TA08</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>🌍 Calculadora d'Estalvi Energètic TIC</h1>
+        <p>Anàlisi i projecció de consums de l'institut</p>
+    </header>
+
+    <main>
+        <section class="calculator-section">
+            <h2>📊 Càlculs de Consum</h2>
+            <p>Selecciona un indicador i el període per veure'n la projecció amb l'estacionalitat aplicada:</p>
+            
+            <div class="controls">
+                <select id="indicator-select">
+                    <option value="electricitat">⚡ Consum Elèctric (kWh)</option>
+                    <option value="aigua">💧 Consum d'Aigua (Lítimes)</option>
+                    <option value="oficina">📎 Consumibles d'Oficina (€)</option>
+                    <option value="neteja">🧹 Productes de Neteja (€)</option>
+                </select>
+
+                <select id="period-select">
+                    <option value="any">Pròxim Any (12 mesos)</option>
+                    <option value="curs">Curs Escolar (Setembre - Juny)</option>
+                </select>
+
+                <button onclick="calcularConsum()">Calcular</button>
+            </div>
+
+            <div id="result-box" class="result-box hidden">
+                <h3>Resultat del càlcul:</h3>
+                <p id="calc-output" class="highlight"></p>
+                <div id="tips-box" class="tips"></div>
+            </div>
+        </section>
+
+        <section class="reduction-plan">
+            <h2>🌱 Pla d'Acció: Reducció 30% en 3 anys</h2>
+            <button onclick="aplicarPlaReduccio()">Aplicar Pla d'Economia Circular</button>
+            <div id="plan-results" class="hidden">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicador</th>
+                            <th>Consum Actual (Any)</th>
+                            <th>Objectiu a 3 anys (-30%)</th>
+                            <th>Estalvi Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="plan-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
