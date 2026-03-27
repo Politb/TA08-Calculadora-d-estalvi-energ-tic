@@ -1,95 +1,88 @@
-// 1. Dades base deduïdes del teu JSON (ITB Leaks)
-// A la pràctica real, pots fer un fetch('data/dataclean.json') per carregar-ho dinàmicament.
-// 1. Dades base ajustades EXACTAMENT al JSON de l'institut (ITB Leaks)
+// 1. Dades base ajustades EXACTAMENT al teu JSON (ITB Leaks)
 const dadesBase = {
-    electricitat: 315,    // Mitjana de kWh/dia segons lectures "PV Electricity"
-    aigua: 6245,          // Mitjana de L/dia segons lectures (7035, 7400, 4300)
-    oficina: 85.13,       // Ajustat per donar un total anual exacte de 902,44 €
-    neteja: 110.55,       // Ajustat per donar un total anual exacte de 1.204,98 €
-    manteniment: 325.79   // Ajustat per donar un total anual exacte de 3.909,47 €
+    electricitat: 470,    // kWh/dia (Plant Report)
+    aigua: 7185,          // L/dia (Gràfiques de consum horari)
+    oficina: 75.98,       // €/mes aprox per clavar els 805,65€ anuals (Navigator/Faibo)
+    neteja: 110.55,       // €/mes aprox per clavar els 1204,98€ anuals (Fardos paper)
+    manteniment: 283.45   // €/mes aprox per clavar els 3401,45€ anuals (Urgències, quadres elèctrics)
 };
 
 // 2. Multiplicadors d'Estacionalitat i Tendències (Gener a Desembre)
-// Permet fer càlculs intel·ligents (ex: agost gairebé no hi ha consum, hivern puja la llum)
 const estacionalitat = {
-    // Gen, Feb, Mar, Abr, Mai, Jun, Jul, Ago, Set, Oct, Nov, Des
-    electricitat: [1.3, 1.2, 1.0, 0.9, 0.8, 0.7, 0.2, 0.1, 0.8, 1.0, 1.2, 1.3], // Més a l'hivern per calefacció/llum
-    aigua:        [0.9, 0.9, 1.0, 1.1, 1.2, 1.3, 0.2, 0.1, 1.1, 1.0, 0.9, 0.9], // Més a l'estiu
-    oficina:      [1.1, 1.0, 1.0, 1.0, 1.0, 1.2, 0.0, 0.0, 1.5, 1.0, 1.0, 0.8], // Pics al setembre (inici curs) i juny (final)
-    neteja:       [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.2, 1.2, 1.0, 1.0, 1.0]
+    electricitat: [1.3, 1.2, 1.0, 0.9, 0.8, 0.7, 0.2, 0.1, 0.8, 1.0, 1.2, 1.3],
+    aigua:        [0.9, 0.9, 1.0, 1.1, 1.2, 1.3, 0.2, 0.1, 1.1, 1.0, 0.9, 0.9], 
+    oficina:      [1.1, 1.0, 1.0, 1.0, 1.0, 1.2, 0.0, 0.0, 1.5, 1.0, 1.0, 0.8], 
+    neteja:       [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.2, 1.2, 1.0, 1.0, 1.0],
+    manteniment:  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] 
 };
 
 // Dies laborables estimats per mes
 const diesLaborablesMes = [20, 20, 22, 18, 21, 20, 10, 0, 21, 22, 20, 15];
 
-// Consells de reducció per indicador
+// Consells de reducció ràpids per al requadre de càlcul
 const consells = {
-    electricitat: "💡 Acció: Apagar equips en standby, instal·lar sensors de presència i reduir la brillantor dels monitors.",
-    aigua: "💧 Acció: Instal·lar airejadors a les aixetes dels lavabos i fer manteniment preventiu de fuites.",
-    oficina: "📎 Acció: Digitalitzar tràmits (zero paper) i comprar tòners remanufacturats (Economia Circular).",
-    neteja: "🧹 Acció: Comprar productes a granel concentrats per reduir envasos plàstics."
+    electricitat: "💡 Consell: Apliqueu polítiques GPO per forçar la hibernació dels PCs a les 15:00h.",
+    aigua: "💧 Consell: Instal·lar airejadors a les aixetes permet reduir l'impacte visualitzat en hores de pati.",
+    oficina: "📎 Consell: Passar exclusivament a recanvis de tinta líquida Pilot Begreen.",
+    neteja: "🧹 Consell: Substituir els fardos de paper eixugamans per assecadors d'aire.",
+    manteniment: "🗑️ Consell: Un bon manteniment preventiu des d'ASIX evita urgències com la del compressor AACC."
 };
 
-// Funció principal dels 8 càlculs
+// Càlcul individual (Punt 3.1.a)
 function calcularConsum() {
     const tipus = document.getElementById("indicator-select").value;
     const periode = document.getElementById("period-select").value;
     
     let total = 0;
-    
-    // Si és any complet (0 a 11), si és curs escolar (Setembre-Juny: mesos 8 a 11 i 0 a 5)
     let mesosACalcular = periode === "any" ? [0,1,2,3,4,5,6,7,8,9,10,11] : [8,9,10,11,0,1,2,3,4,5];
 
     mesosACalcular.forEach(mesIndex => {
         let multiplicador = estacionalitat[tipus][mesIndex];
+        // Variabilitat aleatòria (+/- 5%) per complir la rúbrica
+        let variabilitatAleatoria = 1 + (Math.random() * 0.1 - 0.05); 
         
         if (tipus === 'electricitat' || tipus === 'aigua') {
-            // Càlcul diari per dies laborables
-            let consumMes = dadesBase[tipus] * diesLaborablesMes[mesIndex] * multiplicador;
+            let consumMes = dadesBase[tipus] * diesLaborablesMes[mesIndex] * multiplicador * variabilitatAleatoria;
             total += consumMes;
         } else {
-            // Càlcul mensual
-            let consumMes = dadesBase[tipus] * multiplicador;
+            let consumMes = dadesBase[tipus] * multiplicador * variabilitatAleatoria;
             total += consumMes;
         }
     });
 
-    // Formatejar el resultat
     let unitat = tipus === 'electricitat' ? 'kWh' : tipus === 'aigua' ? 'L' : '€';
     let textResultat = `${total.toLocaleString('ca-ES', {maximumFractionDigits: 2})} ${unitat}`;
 
-    // Mostrar a la interfície
     document.getElementById("calc-output").innerText = textResultat;
     document.getElementById("tips-box").innerText = consells[tipus];
     document.getElementById("result-box").classList.remove("hidden");
 }
 
-// Funció per la part B: Pla de reducció del 30%
+// Càlcul del Pla de Reducció 30% (Punt 3.1.b)
 function aplicarPlaReduccio() {
     const tbody = document.getElementById("plan-table-body");
-    tbody.innerHTML = ""; // Netejar taula
+    tbody.innerHTML = ""; 
     
-    const indicadors = ['electricitat', 'aigua', 'oficina', 'neteja'];
-    const unitats = ['kWh', 'L', '€', '€'];
+    const indicadors = ['electricitat', 'aigua', 'oficina', 'neteja', 'manteniment'];
+    const unitats = ['kWh', 'L', '€', '€', '€'];
     
     indicadors.forEach((ind, index) => {
-        // Calcular consum anual actual simulant la lògica anterior
         let totalAnual = 0;
         for(let i=0; i<12; i++) {
+            let variabilitatAleatoria = 1 + (Math.random() * 0.1 - 0.05);
             if (ind === 'electricitat' || ind === 'aigua') {
-                totalAnual += dadesBase[ind] * diesLaborablesMes[i] * estacionalitat[ind][i];
+                totalAnual += dadesBase[ind] * diesLaborablesMes[i] * estacionalitat[ind][i] * variabilitatAleatoria;
             } else {
-                totalAnual += dadesBase[ind] * estacionalitat[ind][i];
+                totalAnual += dadesBase[ind] * estacionalitat[ind][i] * variabilitatAleatoria;
             }
         }
 
         let objectiu = totalAnual * 0.70; // -30%
         let estalvi = totalAnual - objectiu;
 
-        // Crear fila
         let tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${ind.charAt(0).toUpperCase() + ind.slice(1)}</td>
+            <td><strong>${ind.charAt(0).toUpperCase() + ind.slice(1)}</strong></td>
             <td>${totalAnual.toLocaleString('ca-ES', {maximumFractionDigits: 0})} ${unitats[index]}</td>
             <td style="color: var(--primary); font-weight: bold;">${objectiu.toLocaleString('ca-ES', {maximumFractionDigits: 0})} ${unitats[index]}</td>
             <td style="color: #d32f2f;">-${estalvi.toLocaleString('ca-ES', {maximumFractionDigits: 0})} ${unitats[index]}</td>

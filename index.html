@@ -9,13 +9,13 @@
 <body>
     <header>
         <h1>🌍 Calculadora d'Estalvi Energètic TIC</h1>
-        <p>Anàlisi i projecció de consums de l'institut</p>
+        <p>Anàlisi i projecció de consums de l'institut (Dades Reals ITB Leaks)</p>
     </header>
 
     <main>
         <section class="calculator-section">
-            <h2>📊 Càlculs de Consum</h2>
-            <p>Selecciona un indicador i el període per veure'n la projecció amb l'estacionalitat aplicada:</p>
+            <h2>📊 Càlculs de Consum (Amb Estacionalitat)</h2>
+            <p>Selecciona un indicador i el període per veure'n la projecció:</p>
             
             <div class="controls">
                 <select id="indicator-select">
@@ -23,6 +23,7 @@
                     <option value="aigua">💧 Consum d'Aigua (Lítimes)</option>
                     <option value="oficina">📎 Consumibles d'Oficina (€)</option>
                     <option value="neteja">🧹 Productes de Neteja (€)</option>
+                    <option value="manteniment">🗑️ Manteniment i Escombraries (€)</option>
                 </select>
 
                 <select id="period-select">
@@ -30,7 +31,7 @@
                     <option value="curs">Curs Escolar (Setembre - Juny)</option>
                 </select>
 
-                <button onclick="calcularConsum()">Calcular</button>
+                <button onclick="calcularConsum()">Calcular Estimació</button>
             </div>
 
             <div id="result-box" class="result-box hidden">
@@ -43,12 +44,13 @@
         <section class="reduction-plan">
             <h2>🌱 Pla d'Acció: Reducció 30% en 3 anys</h2>
             <button onclick="aplicarPlaReduccio()">Aplicar Pla d'Economia Circular</button>
+            
             <div id="plan-results" class="hidden">
                 <table>
                     <thead>
                         <tr>
                             <th>Indicador</th>
-                            <th>Consum Actual (Any)</th>
+                            <th>Consum Actual Estimatiu (1 Any)</th>
                             <th>Objectiu a 3 anys (-30%)</th>
                             <th>Estalvi Total</th>
                         </tr>
@@ -56,6 +58,34 @@
                     <tbody id="plan-table-body">
                         </tbody>
                 </table>
+
+                <div class="justificacio-pla" style="margin-top: 2rem;">
+                    <h3>📄 Com aconseguirem aquest 30% d'estalvi? (Basat en fets reals d'ITB Leaks)</h3>
+                    
+                    <details class="eco-detail">
+                        <summary>⚡ 1. Electricitat i Manteniment (Mitjana dies lectius: 470 kWh/dia)</summary>
+                        <p><strong>Anàlisi JSON:</strong> L'informe <em>Plant Report_ITB_01-2025</em> mostra que els dies lectius el consum ronda els 480-500 kWh, però hem detectat consums ineficients com la reparació d'urgència del compressor AACC de 400W (Factura F041) i la necessitat d'actualitzar els quadres elèctrics (Factura F046).</p>
+                        <p><strong>Economia Circular:</strong> Configuració d'hibernació, canvi de quadres amb control lumínic, i manteniment preventiu des del cicle d'ASIX per evitar trencaments (allargant la vida útil d'equips) en comptes d'actuacions d'urgència reactives.</p>
+                    </details>
+
+                    <details class="eco-detail">
+                        <summary>💧 2. Aigua (Pic horari validat: 7.185 L/dia)</summary>
+                        <p><strong>Anàlisi JSON:</strong> La gràfica <em>Aigua-image002</em> ens mostra pics de consum a l'hora del pati (520L a les 14:00h i 540L a les 18:00h).</p>
+                        <p><strong>Economia Circular:</strong> L'estalvi no s'aconseguirà prohibint beure aigua, sinó instal·lant airejadors per reduir el cabal a les hores punta. A més, aprofitarem l'aigua pluvial per a les tasques de neteja de patis externs documentades a la factura <em>F056</em>.</p>
+                    </details>
+
+                    <details class="eco-detail">
+                        <summary>📎 3. Consumibles d'Oficina (Total base anual: ~805,65 €)</summary>
+                        <p><strong>Anàlisi JSON:</strong> Les factures (F328, F035, F036) demostren una alta dependència del <em>Papel Navigator A4</em> i de retoladors <em>Faibo / Pilot Begreen</em>.</p>
+                        <p><strong>Economia Circular:</strong> Les factures ja mostren la compra de "recanvis" de tinta. Incrementarem aquesta política exigint recanvis per al 100% dels retoladors i canviarem a paper reciclat no blanquejat, acompanyat d'una política estricta de <em>Zero Paper</em>.</p>
+                    </details>
+
+                    <details class="eco-detail">
+                        <summary>🧹 4. Productes de Neteja (Total base anual: ~1.204,98 €)</summary>
+                        <p><strong>Anàlisi JSON:</strong> La factura <em>F055</em> desvela el gran gruix de la despesa: "Fardos papel secamano" (18,25€/fardo), bosses d'escombraries industrials i garrafes de sabó de 5L.</p>
+                        <p><strong>Economia Circular:</strong> Eliminarem la dependència del paper eixugamans d'un sol ús instal·lant assecadors de mans eficients. Potenciarem la compra de sabó super-concentrat a granel per reomplir les garrafes de 5L actuals i evitar llençar plàstic.</p>
+                    </details>
+                </div>
             </div>
         </section>
     </main>
