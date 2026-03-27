@@ -1,7 +1,7 @@
-// 1. Dades base ajustades per ser realistes (Evitant el milió de litres)
+// 1. Dades base amb la mitjana calculada (Sense festius/caps de setmana)
 const dadesBase = {
     electricitat: 470,    // kWh/dia 
-    aigua: 2150,          // L/dia (Ajustat per donar un anual d'aprox 440.000 L)
+    aigua: 6245,          // L/dia (Dada actualitzada als vostres càlculs)
     oficina: 75.98,       // €/mes
     neteja: 110.55,       // €/mes
     manteniment: 283.45   // €/mes
@@ -19,10 +19,10 @@ const estacionalitat = {
     manteniment:  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] 
 };
 
-// Consells de reducció
+// Consells de reducció actualitzats
 const consells = {
     electricitat: "💡 Consell: Apliqueu polítiques GPO per forçar la hibernació dels PCs a les 15:00h.",
-    aigua: "💧 Consell: Instal·lar airejadors a les aixetes permet reduir el cabal sense que els alumnes ho notin.",
+    aigua: "⚠️ ALERTA: Consum superior a 1 milió de litres anuals. És URGENT instal·lar airejadors i revisar possibles fuites ocultes.",
     oficina: "📎 Consell: Passar exclusivament a recanvis de tinta líquida Pilot Begreen.",
     neteja: "🧹 Consell: Substituir els fardos de paper eixugamans per assecadors d'aire.",
     manteniment: "🗑️ Consell: Un bon manteniment preventiu des d'ASIX evita urgències com la del compressor AACC."
@@ -48,7 +48,6 @@ function calcularConsum() {
     });
 
     let unitat = tipus === 'electricitat' ? 'kWh' : tipus === 'aigua' ? 'L' : '€';
-    // Traiem els decimals per l'aigua perquè els litres quedin com a números enters clars
     let decimals = tipus === 'aigua' ? 0 : 2; 
     
     document.getElementById("calc-output").innerText = `${total.toLocaleString('ca-ES', {maximumFractionDigits: decimals})} ${unitat}`;
