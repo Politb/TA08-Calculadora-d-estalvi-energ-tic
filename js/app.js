@@ -1,4 +1,4 @@
-// 1. Dades base (Amb la correcció de consumibles d'oficina mensual reals)
+// 1. Dades base 
 const dadesBase = {
     electricitat: {
         consumDiariLectiu: 398.55,  // kWh/dia durant el curs
@@ -38,14 +38,13 @@ function gestionarFiltres() {
 
     if (tipus === 'electricitat') {
         solarGroup.style.display = 'flex';
-        ipcGroup.style.display = 'none';
-    } else if (tipus === 'oficina' || tipus === 'neteja' || tipus === 'manteniment') {
+        ipcGroup.style.display = 'flex'; // <-- CORREGIT: Ara l'IPC també es mostra aquí
+    } else if (tipus === 'aigua') {
         solarGroup.style.display = 'none';
-        ipcGroup.style.display = 'flex';
+        ipcGroup.style.display = 'none'; // Per a l'aigua no ens cal res
     } else {
-        // Per a l'aigua no mostrem ni IPC ni Solar
         solarGroup.style.display = 'none';
-        ipcGroup.style.display = 'none';
+        ipcGroup.style.display = 'flex'; // Consumibles i manteniment (només IPC)
     }
 }
 
@@ -57,7 +56,6 @@ function calcularConsum() {
     const periode = document.getElementById("period-select").value;
     const ipc = parseFloat(document.getElementById("ipc-input").value) || 0;
     
-    // NOU: Agafem el % d'ampliació solar
     const extraSolar = parseFloat(document.getElementById("solar-input").value) || 0;
     const factorSolar = 1 + (extraSolar / 100);
 
@@ -78,13 +76,10 @@ function calcularConsum() {
             let consumMes = (dadesBase.electricitat.consumDiariLectiu * diesLectiusGlobals) + 
                             (dadesBase.electricitat.consumDiariVacances * diesVacances);
                             
-            // NOU: La producció base es multiplica per l'ampliació simulada
             let produccioMes = (dadesBase.electricitat.produccioDiaria * factorSolar) * diesTotalsMes[mesIndex];
             
             let consumNet = consumMes - produccioMes;
             
-            // Si produïm més del que gastem, el consum net serà 0 (o negatiu si s'aboca a la xarxa)
-            // Ho limitem a 0 per no confondre, ja que parlem de "consum de la xarxa"
             if (consumNet < 0) consumNet = 0; 
             
             total += consumNet * multiplicador * variabilitatAleatoria;
