@@ -39,13 +39,32 @@ section {
     gap: 1rem;
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
+    align-items: center;
 }
 
-select, button {
+select, button, input {
     padding: 0.8rem;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+
+.ipc-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff3e0;
+    padding: 0 0.8rem;
+    border-radius: 4px;
+    border: 1px solid #ffb74d;
+}
+
+.ipc-container input {
+    width: 70px;
+    padding: 0.5rem;
+    border: none;
+    background: transparent;
+    font-weight: bold;
 }
 
 button {
@@ -102,7 +121,10 @@ th {
     display: none;
 }
 
-/* Estils per als desplegables de l'explicació */
+.justificacio-pla {
+    margin-top: 2rem;
+}
+
 .eco-detail {
     margin-bottom: 1rem;
     background: white;

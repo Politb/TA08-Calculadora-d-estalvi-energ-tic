@@ -1,13 +1,13 @@
-// 1. Dades base amb la mitjana calculada (Sense festius/caps de setmana)
+// 1. Dades base amb la mitjana calculada
 const dadesBase = {
     electricitat: 470,    // kWh/dia 
-    aigua: 6245,          // L/dia (Dada actualitzada als vostres càlculs)
-    oficina: 75.98,       // €/mes
-    neteja: 110.55,       // €/mes
-    manteniment: 283.45   // €/mes
+    aigua: 6245,          // L/dia
+    oficina: 75.98,       // €/mes (Preu base abans d'IPC)
+    neteja: 110.55,       // €/mes (Preu base abans d'IPC)
+    manteniment: 283.45   // €/mes (Preu base abans d'IPC)
 };
 
-// 2. Calendari Escolar Real (Excloent caps de setmana i vacances)
+// 2. Calendari Escolar Real
 const diesLaborablesMes = [17, 20, 23, 16, 23, 20, 10, 0, 17, 23, 22, 15];
 
 // 3. Multiplicadors d'Estacionalitat
@@ -19,7 +19,6 @@ const estacionalitat = {
     manteniment:  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] 
 };
 
-// Consells de reducció actualitzats
 const consells = {
     electricitat: "💡 Consell: Apliqueu polítiques GPO per forçar la hibernació dels PCs a les 15:00h.",
     aigua: "⚠️ ALERTA: Consum superior a 1 milió de litres anuals. És URGENT instal·lar airejadors i revisar possibles fuites ocultes.",
@@ -28,10 +27,11 @@ const consells = {
     manteniment: "🗑️ Consell: Un bon manteniment preventiu des d'ASIX evita urgències com la del compressor AACC."
 };
 
-// Càlcul individual interactiu
 function calcularConsum() {
     const tipus = document.getElementById("indicator-select").value;
     const periode = document.getElementById("period-select").value;
+    const ipc = parseFloat(document.getElementById("ipc-input").value) || 0;
+    const factorIPC = 1 + (ipc / 100);
     
     let total = 0;
     let mesosACalcular = periode === "any" ? [0,1,2,3,4,5,6,7,8,9,10,11] : [8,9,10,11,0,1,2,3,4,5];
@@ -47,19 +47,29 @@ function calcularConsum() {
         }
     });
 
+    // Si l'indicador es mesura en €, apliquem l'increment de l'IPC
+    if (tipus === 'oficina' || tipus === 'neteja' || tipus === 'manteniment') {
+        total = total * factorIPC;
+    }
+
     let unitat = tipus === 'electricitat' ? 'kWh' : tipus === 'aigua' ? 'L' : '€';
     let decimals = tipus === 'aigua' ? 0 : 2; 
     
-    document.getElementById("calc-output").innerText = `${total.toLocaleString('ca-ES', {maximumFractionDigits: decimals})} ${unitat}`;
+    let extraInfo = (unitat === '€') ? ` (Inclou IPC del ${ipc}%)` : '';
+    
+    document.getElementById("calc-output").innerText = `${total.toLocaleString('ca-ES', {maximumFractionDigits: decimals})} ${unitat}${extraInfo}`;
     document.getElementById("tips-box").innerText = consells[tipus];
     document.getElementById("result-box").classList.remove("hidden");
 }
 
-// Càlcul del Pla de Reducció 30%
 function aplicarPlaReduccio() {
     const tbody = document.getElementById("plan-table-body");
     tbody.innerHTML = ""; 
     
+    const ipc = parseFloat(document.getElementById("ipc-input").value) || 0;
+    // Per projectar a 3 anys, apliquem l'IPC compost a les despeses econòmiques
+    const factorIPC_3Anys = Math.pow(1 + (ipc / 100), 3); 
+
     const indicadors = ['electricitat', 'aigua', 'oficina', 'neteja', 'manteniment'];
     const unitats = ['kWh', 'L', '€', '€', '€'];
     
@@ -73,6 +83,11 @@ function aplicarPlaReduccio() {
             } else {
                 totalAnual += dadesBase[ind] * estacionalitat[ind][i] * variabilitatAleatoria;
             }
+        }
+
+        // Apliquem l'IPC a 3 anys NOMÉS a les despeses en € per fer la projecció real
+        if (unitats[index] === '€') {
+            totalAnual = totalAnual * factorIPC_3Anys;
         }
 
         let objectiu = totalAnual * 0.70; 
