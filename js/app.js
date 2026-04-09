@@ -1,21 +1,19 @@
-// 1. Dades base (Dades definitives: Mitjanes diàries globals)
+// 1. Dades base (Amb la correcció de consumibles d'oficina mensual reals)
 const dadesBase = {
     electricitat: {
-        consumDiariLectiu: 398.55,  // kWh/dia durant el curs (dilluns a diumenge)
-        consumDiariVacances: 185.64,// kWh/dia durant vacances (Nadal, Estiu, Setmana Santa...)
-        produccioDiaria: 43.57      // kWh/dia generats per plaques solars (tot l'any)
+        consumDiariLectiu: 398.55,  // kWh/dia durant el curs
+        consumDiariVacances: 185.64,// kWh/dia durant vacances
+        produccioDiaria: 43.57      // kWh/dia generats per plaques solars actuals
     },
-    aigua: 6245,          // L/dia lectiu
-    oficina: 75.98,       // €/mes (Preu base abans d'IPC)
-    neteja: 110.55,       // €/mes (Preu base abans d'IPC)
-    manteniment: 283.45   // €/mes (Preu base abans d'IPC)
+    aigua: 6245,          
+    oficina: 225.50,      // (902€ / 4 mesos)
+    neteja: 110.55,       
+    manteniment: 283.45   
 };
 
-// 2. Calendari Escolar i Dies Totals
-const diesTotalsMes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; // Gener a Desembre
-const diesLaborablesMes = [17, 20, 23, 16, 23, 20, 10, 0, 17, 23, 22, 15]; // Gener a Desembre
+const diesTotalsMes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const diesLaborablesMes = [17, 20, 23, 16, 23, 20, 10, 0, 17, 23, 22, 15];
 
-// 3. Multiplicadors d'Estacionalitat
 const estacionalitat = {
     electricitat: [1.3, 1.2, 1.0, 0.9, 0.8, 0.7, 0.2, 0.0, 0.8, 1.0, 1.2, 1.3],
     aigua:        [0.9, 0.9, 1.0, 1.1, 1.2, 1.3, 0.2, 0.0, 1.1, 1.0, 0.9, 0.9], 
@@ -24,19 +22,45 @@ const estacionalitat = {
     manteniment:  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] 
 };
 
-// Consells de reducció personalitzats
 const consells = {
-    electricitat: "💡 Dada clau: Es produeixen 43,57 kWh/dia. S'ha usat un càlcul proporcional per dividir cada mes entre períodes de setmanes lectives i períodes de vacances.",
-    aigua: "⚠️ ALERTA: Consum superior a 1 milió de litres anuals. És URGENT instal·lar airejadors i revisar possibles fuites ocultes.",
-    oficina: "📎 Consell: Passar exclusivament a recanvis de tinta líquida Pilot Begreen.",
-    neteja: "🧹 Consell: Substituir els fardos de paper eixugamans per assecadors d'aire.",
-    manteniment: "🗑️ Consell: Un bon manteniment preventiu des d'ASIX evita urgències com la del compressor AACC."
+    electricitat: "💡 Consell: Modifica el % d'Ampliació Solar per veure com cauria el consum net si instal·leu més panells al terrat.",
+    aigua: "⚠️ ALERTA: Consum superior a 1 milió de litres anuals. És URGENT instal·lar airejadors.",
+    oficina: "📎 Consell: Passar exclusivament a recanvis de tinta líquida Pilot Begreen i reduir paper.",
+    neteja: "🧹 Consell: Substituir els fardos de paper eixugamans per assecadors d'aire eficients.",
+    manteniment: "🗑️ Consell: Un bon manteniment preventiu des d'ASIX evita urgències tèrmiques."
 };
+
+// Funció per mostrar/amagar els camps segons el que estiguem calculant
+function gestionarFiltres() {
+    const tipus = document.getElementById("indicator-select").value;
+    const ipcGroup = document.getElementById("ipc-control-group");
+    const solarGroup = document.getElementById("solar-control-group");
+
+    if (tipus === 'electricitat') {
+        solarGroup.style.display = 'flex';
+        ipcGroup.style.display = 'none';
+    } else if (tipus === 'oficina' || tipus === 'neteja' || tipus === 'manteniment') {
+        solarGroup.style.display = 'none';
+        ipcGroup.style.display = 'flex';
+    } else {
+        // Per a l'aigua no mostrem ni IPC ni Solar
+        solarGroup.style.display = 'none';
+        ipcGroup.style.display = 'none';
+    }
+}
+
+// Cridem la funció només carregar la pàgina per deixar la UI neta
+document.addEventListener('DOMContentLoaded', gestionarFiltres);
 
 function calcularConsum() {
     const tipus = document.getElementById("indicator-select").value;
     const periode = document.getElementById("period-select").value;
     const ipc = parseFloat(document.getElementById("ipc-input").value) || 0;
+    
+    // NOU: Agafem el % d'ampliació solar
+    const extraSolar = parseFloat(document.getElementById("solar-input").value) || 0;
+    const factorSolar = 1 + (extraSolar / 100);
+
     const factorIPC = 1 + (ipc / 100);
     
     let total = 0;
@@ -47,26 +71,22 @@ function calcularConsum() {
         let variabilitatAleatoria = 1 + (Math.random() * 0.1 - 0.05); 
         
         if (tipus === 'electricitat') {
-            // Passem els dies lectius purs a "dies de setmana lectiva globals" (regla de 3: 5 dies classe = 7 dies setmana)
             let diesLectiusGlobals = (diesLaborablesMes[mesIndex] / 5) * 7;
-            
-            // Ens assegurem de no comptar més dies dels que té el mes realment
             diesLectiusGlobals = Math.min(diesLectiusGlobals, diesTotalsMes[mesIndex]);
-            
-            // Els dies restants del mes es consideren període de vacances
             let diesVacances = diesTotalsMes[mesIndex] - diesLectiusGlobals;
             
-            // Càlcul del consum BRUT
             let consumMes = (dadesBase.electricitat.consumDiariLectiu * diesLectiusGlobals) + 
                             (dadesBase.electricitat.consumDiariVacances * diesVacances);
                             
-            // Càlcul de la producció d'aquest mes
-            let produccioMes = dadesBase.electricitat.produccioDiaria * diesTotalsMes[mesIndex];
+            // NOU: La producció base es multiplica per l'ampliació simulada
+            let produccioMes = (dadesBase.electricitat.produccioDiaria * factorSolar) * diesTotalsMes[mesIndex];
             
-            // Consum NET
             let consumNet = consumMes - produccioMes;
             
-            // Apliquem la variabilitat/estacionalitat
+            // Si produïm més del que gastem, el consum net serà 0 (o negatiu si s'aboca a la xarxa)
+            // Ho limitem a 0 per no confondre, ja que parlem de "consum de la xarxa"
+            if (consumNet < 0) consumNet = 0; 
+            
             total += consumNet * multiplicador * variabilitatAleatoria;
 
         } else if (tipus === 'aigua') {
@@ -76,7 +96,6 @@ function calcularConsum() {
         }
     });
 
-    // Si l'indicador es mesura en €, apliquem l'increment de l'IPC
     if (tipus === 'oficina' || tipus === 'neteja' || tipus === 'manteniment') {
         total = total * factorIPC;
     }
@@ -84,7 +103,9 @@ function calcularConsum() {
     let unitat = tipus === 'electricitat' ? 'kWh nets' : tipus === 'aigua' ? 'L' : '€';
     let decimals = tipus === 'aigua' || tipus === 'electricitat' ? 0 : 2; 
     
-    let extraInfo = (unitat === '€') ? ` (Inclou IPC del ${ipc}%)` : '';
+    let extraInfo = '';
+    if (unitat === '€') extraInfo = ` (Inclou IPC del ${ipc}%)`;
+    if (tipus === 'electricitat' && extraSolar > 0) extraInfo = ` (Amb instal·lació solar al +${extraSolar}%)`;
     
     document.getElementById("calc-output").innerText = `${total.toLocaleString('ca-ES', {maximumFractionDigits: decimals})} ${unitat}${extraInfo}`;
     document.getElementById("tips-box").innerText = consells[tipus];
@@ -97,6 +118,9 @@ function aplicarPlaReduccio() {
     
     const ipc = parseFloat(document.getElementById("ipc-input").value) || 0;
     const factorIPC_3Anys = Math.pow(1 + (ipc / 100), 3); 
+    
+    const extraSolar = parseFloat(document.getElementById("solar-input").value) || 0;
+    const factorSolar = 1 + (extraSolar / 100);
 
     const indicadors = ['electricitat', 'aigua', 'oficina', 'neteja', 'manteniment'];
     const unitats = ['kWh nets', 'L', '€', '€', '€'];
@@ -114,9 +138,11 @@ function aplicarPlaReduccio() {
                 
                 let consumMes = (dadesBase.electricitat.consumDiariLectiu * diesLectiusGlobals) + 
                                 (dadesBase.electricitat.consumDiariVacances * diesVacances);
-                let produccioMes = dadesBase.electricitat.produccioDiaria * diesTotalsMes[i];
                 
+                let produccioMes = (dadesBase.electricitat.produccioDiaria * factorSolar) * diesTotalsMes[i];
                 let consumNet = consumMes - produccioMes;
+                if (consumNet < 0) consumNet = 0; 
+                
                 totalAnual += consumNet * estacionalitat[ind][i] * variabilitatAleatoria;
 
             } else if (ind === 'aigua') {

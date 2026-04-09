@@ -4,83 +4,126 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora Energètica - TA08</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <header>
-        <h1>🌍 Calculadora d'Estalvi Energètic TIC</h1>
-        <p>Anàlisi i projecció de consums de l'institut (Dades Reals ITB Leaks)</p>
+    <header class="main-header">
+        <div class="header-content">
+            <h1>🌍 Calculadora d'Estalvi Energètic TIC</h1>
+            <p>Anàlisi i projecció de consums de l'institut <span class="badge">Dades Reals ITB Leaks</span></p>
+        </div>
     </header>
 
-    <main>
-        <section class="calculator-section">
-            <h2>📊 Càlculs de Consum (Amb Estacionalitat, Calendari i Inflació)</h2>
-            <p>Selecciona un indicador i el període per veure'n la projecció amb els preus actualitzats:</p>
+    <main class="dashboard">
+        <section class="card calculator-section">
+            <div class="card-header">
+                <h2>📊 Càlculs de Consum</h2>
+                <p>Projecció estacional amb preus actualitzats i inflació.</p>
+            </div>
             
-            <div class="controls">
-                <select id="indicator-select">
-                    <option value="electricitat">⚡ Consum Elèctric (kWh)</option>
-                    <option value="aigua">💧 Consum d'Aigua (L)</option>
-                    <option value="oficina">📎 Consumibles d'Oficina (€)</option>
-                    <option value="neteja">🧹 Productes de Neteja (€)</option>
-                    <option value="manteniment">🗑️ Manteniment i Escombraries (€)</option>
-                </select>
-
-                <select id="period-select">
-                    <option value="any">Pròxim Any (12 mesos)</option>
-                    <option value="curs">Curs Escolar (Setembre - Juny)</option>
-                </select>
-
-                <div class="ipc-container" title="L'IPC només afecta els indicadors econòmics (€)">
-                    <label for="ipc-input">📈 IPC:</label>
-                    <input type="number" id="ipc-input" value="3.1" step="0.1"> %
+<div class="controls-grid">
+                <div class="input-group">
+                    <label for="indicator-select">Indicador</label>
+                    <select id="indicator-select" onchange="gestionarFiltres()">
+                        <option value="electricitat">⚡ Consum Elèctric (kWh)</option>
+                        <option value="aigua">💧 Consum d'Aigua (L)</option>
+                        <option value="oficina">📎 Consumibles d'Oficina (€)</option>
+                        <option value="neteja">🧹 Productes de Neteja (€)</option>
+                        <option value="manteniment">🗑️ Manteniment i Escombraries (€)</option>
+                    </select>
                 </div>
 
-                <button onclick="calcularConsum()">Calcular Estimació</button>
+                <div class="input-group">
+                    <label for="period-select">Període</label>
+                    <select id="period-select">
+                        <option value="any">Pròxim Any (12 mesos)</option>
+                        <option value="curs">Curs Escolar (Setembre - Juny)</option>
+                    </select>
+                </div>
+
+                <div class="input-group" id="ipc-control-group" style="display: none;">
+                    <label for="ipc-input" title="L'IPC només afecta els indicadors econòmics (€)">📈 IPC (%)</label>
+                    <div class="ipc-wrapper">
+                        <input type="number" id="ipc-input" value="3.1" step="0.1">
+                        <span class="ipc-symbol">%</span>
+                    </div>
+                </div>
+
+                <div class="input-group" id="solar-control-group">
+                    <label for="solar-input" title="Simula un augment de plaques solars">☀️ Ampliació Solar (%)</label>
+                    <div class="ipc-wrapper">
+                        <input type="number" id="solar-input" value="0" step="10">
+                        <span class="ipc-symbol">%</span>
+                    </div>
+                </div>
+
+                <div class="input-group btn-group">
+                    <button class="btn-primary" onclick="calcularConsum()">Calcular Estimació</button>
+                </div>
+            </div>
+
+                <div class="input-group btn-group">
+                    <button class="btn-primary" onclick="calcularConsum()">Calcular Estimació</button>
+                </div>
             </div>
 
             <div id="result-box" class="result-box hidden">
-                <h3>Resultat del càlcul:</h3>
-                <p id="calc-output" class="highlight"></p>
-                <div id="tips-box" class="tips"></div>
+                <div class="result-content">
+                    <h3>Resultat del càlcul</h3>
+                    <p id="calc-output" class="highlight"></p>
+                    <div class="tips">
+                        <span class="info-icon">ℹ️</span>
+                        <p id="tips-box"></p>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <section class="reduction-plan">
-            <h2>🌱 Pla d'Acció: Reducció 30% en 3 anys</h2>
-            <button onclick="aplicarPlaReduccio()">Aplicar Pla d'Economia Circular</button>
+        <section class="card reduction-plan">
+            <div class="card-header flex-header">
+                <div>
+                    <h2>🌱 Pla d'Acció Circular</h2>
+                    <p>Objectiu: Reducció del 30% en 3 anys</p>
+                </div>
+                <button class="btn-secondary" onclick="aplicarPlaReduccio()">Generar Projecció</button>
+            </div>
             
             <div id="plan-results" class="hidden">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Indicador</th>
-                            <th>Consum/Despesa Base (1 Any)</th>
-                            <th>Objectiu a 3 anys (-30%)</th>
-                            <th>Estalvi Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="plan-table-body"></tbody>
-                </table>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Indicador</th>
+                                <th>Consum Base (1 Any)</th>
+                                <th>Objectiu a 3 anys (-30%)</th>
+                                <th>Estalvi Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="plan-table-body"></tbody>
+                    </table>
+                </div>
 
                 <div class="justificacio-pla">
-                    <h3>📄 Com aconseguirem aquest 30% d'estalvi?</h3>
-                    <details class="eco-detail">
-                        <summary>⚡ 1. Electricitat i Manteniment</summary>
-                        <p><strong>Economia Circular:</strong> Configuració d'hibernació d'equips informàtics a les hores no lectives i manteniment preventiu des d'ASIX per allargar la vida útil del maquinari.</p>
-                    </details>
-                    <details class="eco-detail">
-                        <summary>💧 2. Aigua (Dada depurada: 6.245 L/dia lectiu)</summary>
-                        <p><strong>Economia Circular:</strong> Instal·lació d'airejadors per reduir el cabal a les hores punta i aprofitament de l'aigua pluvial per a netejar patis externs.</p>
-                    </details>
-                    <details class="eco-detail">
-                        <summary>📎 3. Consumibles d'Oficina</summary>
-                        <p><strong>Economia Circular:</strong> Exigint recanvis per al 100% dels retoladors de pissarra blanca i canviant a paper reciclat no blanquejat (Política Zero Paper).</p>
-                    </details>
-                    <details class="eco-detail">
-                        <summary>🧹 4. Productes de Neteja</summary>
-                        <p><strong>Economia Circular:</strong> Eliminant el paper eixugamans d'un sol ús instal·lant assecadors de mans d'alta eficiència i comprant sabó super-concentrat a granel.</p>
-                    </details>
+                    <h3>📄 Com aconseguirem aquest estalvi?</h3>
+                    <div class="accordion-grid">
+                        <details class="eco-detail">
+                            <summary>⚡ 1. Electricitat i Manteniment</summary>
+                            <p><strong>Acció:</strong> Configuració d'hibernació d'equips informàtics a les hores no lectives i manteniment preventiu des d'ASIX per allargar la vida útil del maquinari.</p>
+                        </details>
+                        <details class="eco-detail">
+                            <summary>💧 2. Aigua</summary>
+                            <p><strong>Acció:</strong> Instal·lació d'airejadors per reduir el cabal a les hores punta i aprofitament de l'aigua pluvial per a netejar patis externs.</p>
+                        </details>
+                        <details class="eco-detail">
+                            <summary>📎 3. Consumibles d'Oficina</summary>
+                            <p><strong>Acció:</strong> Exigint recanvis per al 100% dels retoladors de pissarra blanca i canviant a paper reciclat no blanquejat (Política Zero Paper).</p>
+                        </details>
+                        <details class="eco-detail">
+                            <summary>🧹 4. Productes de Neteja</summary>
+                            <p><strong>Acció:</strong> Eliminant el paper eixugamans d'un sol ús instal·lant assecadors de mans d'alta eficiència i comprant sabó super-concentrat a granel.</p>
+                        </details>
+                    </div>
                 </div>
             </div>
         </section>
