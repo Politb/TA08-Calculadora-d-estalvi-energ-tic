@@ -22,15 +22,15 @@ const estacionalitat = {
     manteniment:  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] 
 };
 
+// Textos formalitzats sense emojis
 const consells = {
-    electricitat: "💡 Consell: Modifica el % d'Ampliació Solar per veure com cauria el consum net.",
-    aigua: "💧 Consell: Activa les mesures d'estalvi per simular l'impacte en el consum anual.",
-    oficina: "📎 Consell: Passar exclusivament a recanvis de tinta líquida Pilot Begreen i reduir paper.",
-    neteja: "🧹 Consell: Substituir els fardos de paper eixugamans per assecadors d'aire eficients.",
-    manteniment: "🗑️ Consell: Un bon manteniment preventiu des d'ASIX evita urgències tèrmiques."
+    electricitat: "Nota d'Anàlisi: Modifiqueu el paràmetre d'Ampliació Fotovoltaica per avaluar l'impacte directe sobre la reducció del consum net adquirit de la xarxa.",
+    aigua: "Nota d'Anàlisi: Seleccioneu les diferents mesures del Pla d'Eficiència Hídrica per simular l'impacte acumulat en el consum global anual.",
+    oficina: "Recomanació Operativa: Establir una política de transició exclusiva cap a consumibles recarregables i auditar l'ús de paper imprès.",
+    neteja: "Recomanació Operativa: Es suggereix la substitució progressiva de consumibles de paper d'un sol ús per sistemes d'assecat d'alta eficiència energètica.",
+    manteniment: "Recomanació Operativa: La implementació d'un protocol de manteniment preventiu auditat redueix significativament la incidència d'urgències tèrmiques."
 };
 
-// Funció per mostrar/amagar dinàmicament els controls
 function gestionarFiltres() {
     const tipus = document.getElementById("indicator-select").value;
     const ipcGroup = document.getElementById("ipc-control-group");
@@ -54,7 +54,6 @@ function gestionarFiltres() {
 
 document.addEventListener('DOMContentLoaded', gestionarFiltres);
 
-// Càlcul de la targeta principal
 function calcularConsum() {
     const tipus = document.getElementById("indicator-select").value;
     const periode = document.getElementById("period-select").value;
@@ -64,7 +63,6 @@ function calcularConsum() {
     const factorSolar = 1 + (extraSolar / 100);
     const factorIPC = 1 + (ipc / 100);
     
-    // Sumatori dels estalvis d'aigua seleccionats als checkboxes
     let percentatgeEstalviAigua = 0;
     if (tipus === 'aigua') {
         if (document.getElementById("chk-aireadores").checked) percentatgeEstalviAigua += 10;
@@ -101,7 +99,6 @@ function calcularConsum() {
         }
     });
 
-    // Aplicació de factors finals
     if (tipus === 'oficina' || tipus === 'neteja' || tipus === 'manteniment') {
         total = total * factorIPC;
     } else if (tipus === 'aigua') {
@@ -112,16 +109,15 @@ function calcularConsum() {
     let decimals = tipus === 'aigua' || tipus === 'electricitat' ? 0 : 2; 
     
     let extraInfo = '';
-    if (unitat === '€') extraInfo = ` (Inclou IPC del ${ipc}%)`;
-    if (tipus === 'electricitat' && extraSolar > 0) extraInfo = ` (Amb solar al +${extraSolar}%)`;
-    if (tipus === 'aigua' && percentatgeEstalviAigua > 0) extraInfo = ` (Amb mesures: -${percentatgeEstalviAigua}%)`;
+    if (unitat === '€') extraInfo = ` (Inclou IPC projectat del ${ipc}%)`;
+    if (tipus === 'electricitat' && extraSolar > 0) extraInfo = ` (Base + ampliació fotovoltaica: ${extraSolar}%)`;
+    if (tipus === 'aigua' && percentatgeEstalviAigua > 0) extraInfo = ` (Eficàcia del pla aplicat: -${percentatgeEstalviAigua}%)`;
     
     document.getElementById("calc-output").innerText = `${total.toLocaleString('ca-ES', {maximumFractionDigits: decimals})} ${unitat}${extraInfo}`;
     document.getElementById("tips-box").innerText = consells[tipus];
     document.getElementById("result-box").classList.remove("hidden");
 }
 
-// Generació de la Taula del Pla d'Acció
 function aplicarPlaReduccio() {
     const tbody = document.getElementById("plan-table-body");
     tbody.innerHTML = ""; 
@@ -137,8 +133,16 @@ function aplicarPlaReduccio() {
     if (document.getElementById("chk-cisternas").checked) percentatgeEstalviAigua += 15;
     if (document.getElementById("chk-sensores").checked) percentatgeEstalviAigua += 10;
 
-    const indicadors = ['electricitat', 'aigua', 'oficina', 'neteja', 'manteniment'];
-    const unitats = ['kWh nets', 'L', '€', '€', '€'];
+    // Noms formatats per la taula corporativa
+    const indicadorsMap = {
+        'electricitat': 'Consum Elèctric',
+        'aigua': 'Recursos Hídrics',
+        'oficina': 'Material d\'Oficina',
+        'neteja': 'Productes de Neteja',
+        'manteniment': 'Manteniment i Residus'
+    };
+    const indicadors = Object.keys(indicadorsMap);
+    const unitats = ['kWh', 'L', '€', '€', '€'];
     
     indicadors.forEach((ind, index) => {
         let totalAnual = 0;
@@ -181,13 +185,15 @@ function aplicarPlaReduccio() {
 
         let tr = document.createElement("tr");
         tr.innerHTML = `
-            <td><strong>${ind.charAt(0).toUpperCase() + ind.slice(1)}</strong></td>
+            <td><strong>${indicadorsMap[ind]}</strong></td>
             <td>${totalAnual.toLocaleString('ca-ES', {maximumFractionDigits: 0})} ${unitats[index]}</td>
-            <td style="color: var(--primary); font-weight: bold;">
+            <td style="color: var(--primary-dark); font-weight: 500;">
                 ${objectiu.toLocaleString('ca-ES', {maximumFractionDigits: 0})} ${unitats[index]} 
-                <br><small style="color: var(--text-muted); font-size: 0.8em;">(-${percentatgeObjectiu}%)</small>
+                <span style="color: var(--text-muted); font-size: 0.85em; margin-left: 0.5rem;">(-${percentatgeObjectiu}%)</span>
             </td>
-            <td style="color: #d32f2f;">-${estalvi.toLocaleString('ca-ES', {maximumFractionDigits: 0})} ${unitats[index]}</td>
+            <td class="text-right" style="color: #15803d; font-weight: 600;">
+                -${estalvi.toLocaleString('ca-ES', {maximumFractionDigits: 0})} ${unitats[index]}
+            </td>
         `;
         tbody.appendChild(tr);
     });
