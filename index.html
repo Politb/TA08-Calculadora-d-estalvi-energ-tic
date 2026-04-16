@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Energètica - TA08</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Calculadora de Sostenibilitat - ASIX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header class="main-header">
         <div class="header-content">
-            <h1>🌍 Calculadora d'Estalvi Energètic TIC</h1>
-            <p>Anàlisi i projecció de consums de l'institut <span class="badge">Dades Reals ITB Leaks</span></p>
+            <h1>Calculadora de Sostenibilitat</h1>
+            <p>Projecte ASIX <span class="badge">Gestió de Recursos</span></p>
         </div>
     </header>
 
     <main class="dashboard">
-        <section class="card calculator-section">
+        <section class="card">
             <div class="card-header">
-                <h2>📊 Càlculs de Consum</h2>
-                <p>Projecció estacional amb preus actualitzats i inflació.</p>
+                <h2>Simulador de Consum</h2>
+                <p>Calcula la despesa estimada aplicant variables reals</p>
             </div>
             
-<div class="controls-grid">
+            <div class="controls-grid">
                 <div class="input-group">
                     <label for="indicator-select">Indicador</label>
                     <select id="indicator-select" onchange="gestionarFiltres()">
@@ -58,10 +58,14 @@
                     </div>
                 </div>
 
-                <div class="input-group btn-group">
-                    <button class="btn-primary" onclick="calcularConsum()">Calcular Estimació</button>
+                <div class="input-group" id="water-control-group" style="display: none;">
+                    <label>💧 Mesures d'Estalvi (Aigua)</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="chk-aireadores" value="10"> Airejadors (-10%)</label>
+                        <label><input type="checkbox" id="chk-cisternas" value="15"> Millora Cisternes (-15%)</label>
+                        <label><input type="checkbox" id="chk-sensores" value="10"> Aixetes Sensor (-10%)</label>
+                    </div>
                 </div>
-            </div>
 
                 <div class="input-group btn-group">
                     <button class="btn-primary" onclick="calcularConsum()">Calcular Estimació</button>
@@ -70,58 +74,54 @@
 
             <div id="result-box" class="result-box hidden">
                 <div class="result-content">
-                    <h3>Resultat del càlcul</h3>
-                    <p id="calc-output" class="highlight"></p>
+                    <h3>Resultat Estimat:</h3>
+                    <div id="calc-output" class="highlight">0</div>
                     <div class="tips">
-                        <span class="info-icon">ℹ️</span>
                         <p id="tips-box"></p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="card reduction-plan">
+        <section class="card">
             <div class="card-header flex-header">
                 <div>
-                    <h2>🌱 Pla d'Acció Circular</h2>
-                    <p>Objectiu: Reducció del 30% en 3 anys</p>
+                    <h2>Pla d'Acció Circular (3 Anys)</h2>
+                    <p>Projecció de reducció de costos per a la directiva</p>
                 </div>
-                <button class="btn-secondary" onclick="aplicarPlaReduccio()">Generar Projecció</button>
+                <button class="btn-secondary" onclick="aplicarPlaReduccio()">Generar Pla Global</button>
             </div>
-            
+
             <div id="plan-results" class="hidden">
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
                                 <th>Indicador</th>
-                                <th>Consum Base (1 Any)</th>
-                                <th>Objectiu a 3 anys (-30%)</th>
-                                <th>Estalvi Total</th>
+                                <th>Projecció Actual</th>
+                                <th>Objectiu Reducció</th>
+                                <th>Estalvi Net</th>
                             </tr>
                         </thead>
-                        <tbody id="plan-table-body"></tbody>
+                        <tbody id="plan-table-body">
+                            </tbody>
                     </table>
                 </div>
 
                 <div class="justificacio-pla">
-                    <h3>📄 Com aconseguirem aquest estalvi?</h3>
+                    <h3>Detalls de les mesures adoptades</h3>
                     <div class="accordion-grid">
                         <details class="eco-detail">
-                            <summary>⚡ 1. Electricitat i Manteniment</summary>
-                            <p><strong>Acció:</strong> Configuració d'hibernació d'equips informàtics a les hores no lectives i manteniment preventiu des d'ASIX per allargar la vida útil del maquinari.</p>
+                            <summary>⚡ Eficiència Elèctrica</summary>
+                            <p>Optimització de franges horàries i aprofitament màxim de la corba de producció solar als matins.</p>
                         </details>
                         <details class="eco-detail">
-                            <summary>💧 2. Aigua</summary>
-                            <p><strong>Acció:</strong> Instal·lació d'airejadors per reduir el cabal a les hores punta i aprofitament de l'aigua pluvial per a netejar patis externs.</p>
+                            <summary>💧 Gestió Hídrica</summary>
+                            <p>Instal·lació d'airejadors, millora de cisternes i incorporació d'aixetes amb sensor infraroig.</p>
                         </details>
                         <details class="eco-detail">
-                            <summary>📎 3. Consumibles d'Oficina</summary>
-                            <p><strong>Acció:</strong> Exigint recanvis per al 100% dels retoladors de pissarra blanca i canviant a paper reciclat no blanquejat (Política Zero Paper).</p>
-                        </details>
-                        <details class="eco-detail">
-                            <summary>🧹 4. Productes de Neteja</summary>
-                            <p><strong>Acció:</strong> Eliminant el paper eixugamans d'un sol ús instal·lant assecadors de mans d'alta eficiència i comprant sabó super-concentrat a granel.</p>
+                            <summary>♻️ Compra Verda (Oficina i Neteja)</summary>
+                            <p>Centralització de comandes, eliminació d'envasos d'un sol ús i transició a productes de neteja concentrats.</p>
                         </details>
                     </div>
                 </div>
@@ -132,4 +132,3 @@
     <script src="js/app.js"></script>
 </body>
 </html>
-
