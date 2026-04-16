@@ -1,21 +1,22 @@
-/* --- VARIABLES I CONFIGURACIÓ GLOBAL --- */
+/* --- VARIABLES CORPORATIVES (DISSENY PROFESSIONAL SAAS) --- */
 :root {
-    --primary: #10b981;         
-    --primary-dark: #059669;    
-    --primary-light: #d1fae5;   
-    --secondary: #3b82f6;       
-    --bg-app: #f3f4f6;          
+    --primary: #0ea5e9;         /* Blau Oceà corporatiu */
+    --primary-dark: #0284c7;    
+    --primary-light: #f0f9ff;   
+    --secondary: #334155;       /* Gris Pissarra / Slate */
+    --secondary-dark: #1e293b;
+    --bg-app: #f8fafc;          /* Fons gris molt clar i neutre */
     --card-bg: #ffffff;         
-    --text-main: #1f2937;       
-    --text-muted: #6b7280;      
+    --text-main: #0f172a;       /* Text gairebé negre per contrast */
+    --text-muted: #64748b;      
     --danger: #ef4444;          
-    --border: #e5e7eb;
+    --success: #10b981;
+    --border: #e2e8f0;
     
-    --radius-lg: 16px;
-    --radius-md: 8px;
+    --radius-lg: 12px;          /* Menys arrodonit, més seriós */
+    --radius-md: 6px;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 * {
@@ -25,53 +26,56 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--bg-app);
     color: var(--text-main);
-    line-height: 1.6;
+    line-height: 1.5;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased; /* Fa que el text es vegi més nítid */
 }
 
-/* --- HEADER RESPONSIVE --- */
+/* --- HEADER MINIMALISTA --- */
 .main-header {
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    background-color: #0f172a; /* Fons fosc sòlid, sense gradients infantils */
     color: white;
-    padding: 3rem 1rem 4rem 1rem;
+    padding: 3.5rem 1rem 5rem 1rem;
     text-align: center;
-    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid #1e293b;
 }
 
 .header-content h1 {
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    font-weight: 700;
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 600;
     margin-bottom: 0.5rem;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.025em;
 }
 
 .header-content p {
-    font-size: clamp(0.9rem, 2vw, 1.1rem);
-    opacity: 0.9;
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    color: #94a3b8;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
 }
 
 .badge {
-    background-color: rgba(255, 255, 255, 0.2);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
+    background-color: rgba(14, 165, 233, 0.2);
+    color: #38bdf8;
+    padding: 2px 10px;
+    border-radius: 4px; /* Més quadrat */
+    font-size: 0.75rem;
     font-weight: 600;
-    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 /* --- MAIN DASHBOARD --- */
 .dashboard {
     width: 100%;
-    max-width: 1100px;
-    margin: -3rem auto 3rem auto;
+    max-width: 1000px; /* Una mica més estret per facilitar la lectura */
+    margin: -3.5rem auto 3rem auto;
     padding: 0 1rem;
     position: relative;
     z-index: 10;
@@ -81,27 +85,28 @@ body {
 .card {
     background: var(--card-bg);
     border-radius: var(--radius-lg);
-    padding: clamp(1rem, 3vw, 2rem);
-    margin-bottom: 2rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    margin-bottom: 1.5rem;
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border);
 }
 
 .card-header {
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid var(--bg-app);
+    margin-bottom: 2rem;
     padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
 }
 
 .card-header h2 {
-    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    font-size: clamp(1.1rem, 3vw, 1.25rem);
     color: var(--text-main);
     font-weight: 600;
 }
 
 .card-header p {
     color: var(--text-muted);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
 }
 
 .flex-header {
@@ -115,43 +120,42 @@ body {
 /* --- FORMULARIS I CONTROLS --- */
 .controls-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
     align-items: end;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .input-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.4rem;
     width: 100%;
 }
 
 .input-group label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 500;
-    color: var(--text-muted);
+    color: var(--secondary);
 }
 
 select, input[type="number"] {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 0.75rem;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--text-main);
-    background-color: var(--bg-app);
-    transition: all 0.3s ease;
-    cursor: pointer;
+    background-color: #fff;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
 }
 
 select:focus, input[type="number"]:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-light);
-    background-color: white;
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
 }
 
 .ipc-wrapper {
@@ -167,19 +171,20 @@ select:focus, input[type="number"]:focus {
 
 .ipc-symbol {
     position: absolute;
-    right: 1rem;
+    right: 0.75rem;
     color: var(--text-muted);
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 0.9rem;
     pointer-events: none;
 }
 
-/* --- ESTILS CHECKBOXES AIGUA --- */
+/* --- ESTILS CHECKBOXES PROFESSIONAL --- */
 .checkbox-group {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    background: white;
-    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+    background: #f8fafc;
+    padding: 0.75rem;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
 }
@@ -188,171 +193,172 @@ select:focus, input[type="number"]:focus {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.9rem !important;
-    color: var(--text-main) !important;
+    font-size: 0.85rem !important;
+    color: var(--secondary) !important;
     cursor: pointer;
-    font-weight: 500 !important;
+    font-weight: 400 !important;
     margin: 0;
 }
 
 .checkbox-group input[type="checkbox"] {
-    width: 1.2rem;
-    height: 1.2rem;
+    width: 1rem;
+    height: 1rem;
     accent-color: var(--primary);
     cursor: pointer;
     margin: 0;
+    border-radius: 3px;
 }
 
-/* --- BOTONS --- */
+/* --- BOTONS MINIMALISTES --- */
 button {
     font-family: inherit;
-    font-weight: 600;
-    padding: 0.8rem 1.5rem;
-    border: none;
+    font-weight: 500;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid transparent;
     border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
     width: 100%;
 }
 
 .btn-primary {
     background-color: var(--primary);
     color: white;
-    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
-    min-height: 46px;
+    min-height: 42px;
 }
 
 .btn-primary:hover {
     background-color: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
 }
 
 .btn-secondary {
-    background-color: var(--secondary);
-    color: white;
+    background-color: white;
+    color: var(--secondary);
+    border-color: var(--border);
     width: auto;
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary:hover {
-    background-color: #2563eb;
-    transform: translateY(-2px);
+    background-color: var(--bg-app);
+    color: var(--text-main);
 }
 
-/* --- CAIXA DE RESULTATS --- */
+/* --- CAIXA DE RESULTATS NET I SOBRI --- */
 .result-box {
-    background: var(--primary-light);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    border-radius: var(--radius-lg);
-    padding: clamp(1rem, 3vw, 1.5rem);
-    animation: fadeIn 0.5s ease-out;
-    word-break: break-word;
+    background: var(--bg-app);
+    border-left: 4px solid var(--primary);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: 1.5rem;
+    animation: fadeIn 0.4s ease-out;
 }
 
 .result-content h3 {
-    color: var(--primary-dark);
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
 }
 
 .highlight {
-    font-size: clamp(1.8rem, 5vw, 2.5rem);
-    font-weight: 700;
-    color: var(--primary-dark);
+    font-size: clamp(1.8rem, 4vw, 2.2rem);
+    font-weight: 600;
+    color: var(--text-main);
     margin-bottom: 1rem;
-    letter-spacing: -1px;
+    letter-spacing: -0.025em;
 }
 
 .tips {
     display: flex;
     gap: 0.75rem;
     align-items: flex-start;
-    background: white;
-    padding: 1rem;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .tips p {
-    color: var(--text-muted);
+    color: var(--secondary);
     margin: 0;
+    line-height: 1.5;
 }
 
-/* --- TAULA (PLA DE REDUCCIÓ) --- */
+/* --- TAULA CORPORATIVA --- */
 .table-container {
     overflow-x: auto;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
 }
 
 table {
     width: 100%;
-    min-width: 600px;
+    min-width: 650px;
     border-collapse: collapse;
     text-align: left;
+    background: white;
 }
 
 th, td {
-    padding: 1.2rem 1rem;
+    padding: 1rem 1.2rem;
     border-bottom: 1px solid var(--border);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 th {
     background-color: var(--bg-app);
     color: var(--text-muted);
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.5px;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
 }
 
-tbody tr {
-    transition: background-color 0.2s;
+tbody tr:last-child td {
+    border-bottom: none;
 }
 
 tbody tr:hover {
     background-color: #f8fafc;
 }
 
-/* --- ACCORDIONS (DETALLS ECO) --- */
+/* --- ACCORDIONS ESTIL PANEL DE CONFIGURACIÓ --- */
 .justificacio-pla {
     margin-top: 2rem;
 }
 
 .justificacio-pla h3 {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--text-main);
     margin-bottom: 1rem;
+    font-weight: 600;
 }
 
 .accordion-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.5rem;
 }
 
 .eco-detail {
-    background: var(--bg-app);
+    background: white;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: 1rem;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .eco-detail[open] {
-    background: white;
-    border-color: var(--primary);
-    box-shadow: var(--shadow-md);
+    background: var(--bg-app);
+    border-color: #cbd5e1;
 }
 
 .eco-detail summary {
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 1rem 1.2rem;
     cursor: pointer;
-    color: var(--text-main);
+    color: var(--secondary);
     list-style: none;
     display: flex;
     justify-content: space-between;
@@ -364,22 +370,21 @@ tbody tr:hover {
 }
 
 .eco-detail summary::after {
-    content: '+';
-    font-size: 1.5rem;
-    color: var(--primary);
-    transition: transform 0.3s;
+    content: '↓';
+    font-size: 1rem;
+    color: var(--text-muted);
+    transition: transform 0.2s;
 }
 
 .eco-detail[open] summary::after {
-    transform: rotate(45deg);
+    transform: rotate(180deg);
 }
 
 .eco-detail p {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px dashed var(--border);
+    padding: 0 1.2rem 1.2rem 1.2rem;
     color: var(--text-muted);
-    font-size: 0.95rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
 }
 
 /* --- UTILITATS --- */
@@ -388,11 +393,11 @@ tbody tr:hover {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- MEDIA QUERIES (ADAPTACIÓ A MÒBILS I TABLETS) --- */
+/* --- MEDIA QUERIES --- */
 @media (max-width: 768px) {
     .btn-secondary {
         width: 100%;
@@ -401,6 +406,7 @@ tbody tr:hover {
     .flex-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 1rem;
     }
 }
 
@@ -410,6 +416,6 @@ tbody tr:hover {
     }
     
     .main-header {
-        padding: 2rem 1rem 3rem 1rem;
+        padding: 2.5rem 1rem 4rem 1rem;
     }
 }

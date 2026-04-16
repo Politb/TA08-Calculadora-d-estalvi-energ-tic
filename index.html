@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Sostenibilitat - ASIX</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Dashboard Sostenibilitat - ASIX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header class="main-header">
         <div class="header-content">
-            <h1>Calculadora de Sostenibilitat</h1>
-            <p>Projecte ASIX <span class="badge">Gestió de Recursos</span></p>
+            <h1>Dashboard de Sostenibilitat</h1>
+            <p>Projecte ASIX <span class="badge">Anàlisi de Recursos</span></p>
         </div>
     </header>
 
@@ -19,31 +19,31 @@
         <section class="card">
             <div class="card-header">
                 <h2>Simulador de Consum</h2>
-                <p>Calcula la despesa estimada aplicant variables reals</p>
+                <p>Càlcul i projecció de despeses operatives</p>
             </div>
             
             <div class="controls-grid">
                 <div class="input-group">
-                    <label for="indicator-select">Indicador</label>
+                    <label for="indicator-select">Indicador d'Anàlisi</label>
                     <select id="indicator-select" onchange="gestionarFiltres()">
-                        <option value="electricitat">⚡ Consum Elèctric (kWh)</option>
-                        <option value="aigua">💧 Consum d'Aigua (L)</option>
-                        <option value="oficina">📎 Consumibles d'Oficina (€)</option>
-                        <option value="neteja">🧹 Productes de Neteja (€)</option>
-                        <option value="manteniment">🗑️ Manteniment i Escombraries (€)</option>
+                        <option value="electricitat">Consum Elèctric (kWh)</option>
+                        <option value="aigua">Consum d'Aigua (L)</option>
+                        <option value="oficina">Material d'Oficina (€)</option>
+                        <option value="neteja">Productes de Neteja (€)</option>
+                        <option value="manteniment">Manteniment Tècnic (€)</option>
                     </select>
                 </div>
 
                 <div class="input-group">
-                    <label for="period-select">Període</label>
+                    <label for="period-select">Període d'Avaluació</label>
                     <select id="period-select">
-                        <option value="any">Pròxim Any (12 mesos)</option>
-                        <option value="curs">Curs Escolar (Setembre - Juny)</option>
+                        <option value="any">Anual (12 mesos)</option>
+                        <option value="curs">Curs Acadèmic (Setembre - Juny)</option>
                     </select>
                 </div>
 
                 <div class="input-group" id="ipc-control-group" style="display: none;">
-                    <label for="ipc-input" title="L'IPC només afecta els indicadors econòmics (€)">📈 IPC (%)</label>
+                    <label for="ipc-input" title="Afecta els indicadors econòmics">Taxa IPC (%)</label>
                     <div class="ipc-wrapper">
                         <input type="number" id="ipc-input" value="3.1" step="0.1">
                         <span class="ipc-symbol">%</span>
@@ -51,7 +51,7 @@
                 </div>
 
                 <div class="input-group" id="solar-control-group">
-                    <label for="solar-input" title="Simula un augment de plaques solars">☀️ Ampliació Solar (%)</label>
+                    <label for="solar-input" title="Augment de capacitat instal·lada">Expansió Fotovoltaica (%)</label>
                     <div class="ipc-wrapper">
                         <input type="number" id="solar-input" value="0" step="10">
                         <span class="ipc-symbol">%</span>
@@ -59,22 +59,22 @@
                 </div>
 
                 <div class="input-group" id="water-control-group" style="display: none;">
-                    <label>💧 Mesures d'Estalvi (Aigua)</label>
+                    <label>Mesures d'Eficiència Hídrica</label>
                     <div class="checkbox-group">
-                        <label><input type="checkbox" id="chk-aireadores" value="10"> Airejadors (-10%)</label>
-                        <label><input type="checkbox" id="chk-cisternas" value="15"> Millora Cisternes (-15%)</label>
-                        <label><input type="checkbox" id="chk-sensores" value="10"> Aixetes Sensor (-10%)</label>
+                        <label><input type="checkbox" id="chk-aireadores" value="10"> Instal·lació d'airejadors (-10%)</label>
+                        <label><input type="checkbox" id="chk-cisternas" value="15"> Optimització de cisternes (-15%)</label>
+                        <label><input type="checkbox" id="chk-sensores" value="10"> Aixetes amb sensor (-10%)</label>
                     </div>
                 </div>
 
                 <div class="input-group btn-group">
-                    <button class="btn-primary" onclick="calcularConsum()">Calcular Estimació</button>
+                    <button class="btn-primary" onclick="calcularConsum()">Executar Simulació</button>
                 </div>
             </div>
 
             <div id="result-box" class="result-box hidden">
                 <div class="result-content">
-                    <h3>Resultat Estimat:</h3>
+                    <h3>Projecció Calculada</h3>
                     <div id="calc-output" class="highlight">0</div>
                     <div class="tips">
                         <p id="tips-box"></p>
@@ -86,10 +86,10 @@
         <section class="card">
             <div class="card-header flex-header">
                 <div>
-                    <h2>Pla d'Acció Circular (3 Anys)</h2>
-                    <p>Projecció de reducció de costos per a la directiva</p>
+                    <h2>Pla d'Acció Circular</h2>
+                    <p>Projecció financera i d'impacte a 3 anys per a la direcció</p>
                 </div>
-                <button class="btn-secondary" onclick="aplicarPlaReduccio()">Generar Pla Global</button>
+                <button class="btn-secondary" onclick="aplicarPlaReduccio()">Generar Informe Global</button>
             </div>
 
             <div id="plan-results" class="hidden">
@@ -97,10 +97,10 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Indicador</th>
-                                <th>Projecció Actual</th>
-                                <th>Objectiu Reducció</th>
-                                <th>Estalvi Net</th>
+                                <th>Indicador Operatiu</th>
+                                <th>Projecció Base</th>
+                                <th>Objectiu de Reducció</th>
+                                <th>Estalvi Net Estimat</th>
                             </tr>
                         </thead>
                         <tbody id="plan-table-body">
@@ -109,19 +109,19 @@
                 </div>
 
                 <div class="justificacio-pla">
-                    <h3>Detalls de les mesures adoptades</h3>
+                    <h3>Documentació Tècnica de Mesures</h3>
                     <div class="accordion-grid">
                         <details class="eco-detail">
-                            <summary>⚡ Eficiència Elèctrica</summary>
-                            <p>Optimització de franges horàries i aprofitament màxim de la corba de producció solar als matins.</p>
+                            <summary>Eficiència Elèctrica</summary>
+                            <p>Optimització de franges horàries de maquinària pesant i aprofitament màxim de la corba de producció solar als matins. Programació de termòstats via programari.</p>
                         </details>
                         <details class="eco-detail">
-                            <summary>💧 Gestió Hídrica</summary>
-                            <p>Instal·lació d'airejadors, millora de cisternes i incorporació d'aixetes amb sensor infraroig.</p>
+                            <summary>Gestió Hídrica</summary>
+                            <p>Desplegament d'airejadors en punts de consum recurrent, adaptació de cisternes de doble descàrrega i transició a sistemes d'aixetes amb sensor infraroig automàtic.</p>
                         </details>
                         <details class="eco-detail">
-                            <summary>♻️ Compra Verda (Oficina i Neteja)</summary>
-                            <p>Centralització de comandes, eliminació d'envasos d'un sol ús i transició a productes de neteja concentrats.</p>
+                            <summary>Política de Compres Sostenibles</summary>
+                            <p>Auditoria de proveïdors per centralitzar comandes, eliminació progressiva d'envasos d'un sol ús i adopció de productes de neteja d'alta concentració.</p>
                         </details>
                     </div>
                 </div>
