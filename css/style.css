@@ -1,16 +1,16 @@
 /* --- VARIABLES CORPORATIVES (ESTIL ENTERPRISE) --- */
 :root {
-    --primary: #4f46e5;       /* Indigo corporatiu */
+    --primary: #4f46e5;       
     --primary-dark: #3730a3;  
     --primary-light: #e0e7ff; 
-    --secondary: #0f172a;     /* Slate profund pel fons del header */
-    --bg-app: #f8fafc;        /* Fons molt suau, gairebé blanc */
+    --secondary: #0f172a;     
+    --bg-app: #f8fafc;        
     --card-bg: #ffffff;       
-    --text-main: #0f172a;     /* Gris fosc per màxim contrast */
-    --text-muted: #64748b;    /* Gris intermedi per a textos secundaris */
-    --border: #e2e8f0;        /* Línies fines i discretes */
+    --text-main: #0f172a;     
+    --text-muted: #64748b;    
+    --border: #e2e8f0;        
     
-    --radius-lg: 12px;        /* Menys arrodonit, més seriós */
+    --radius-lg: 12px;        
     --radius-md: 6px;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
@@ -250,15 +250,7 @@ button {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.highlight {
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--text-main);
     margin-bottom: 1rem;
-    letter-spacing: -0.025em;
 }
 
 .tips {

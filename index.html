@@ -3,131 +3,333 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Sostenibilitat - ASIX</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <title>Panell de Sostenibilitat ASIX</title>
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --bg-header: #0f172a;
+            --card-bg: #ffffff;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-dark: #3730a3;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        header {
+            background-color: var(--bg-header);
+            color: white;
+            padding: 3rem 2rem 5rem 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: -3rem auto 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .grid-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input[type="number"]:focus {
+            border-color: var(--primary);
+        }
+
+        .input-with-suffix {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-suffix input {
+            padding-right: 2rem;
+        }
+
+        .input-with-suffix span {
+            position: absolute;
+            right: 0.75rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .checkbox-group {
+            background-color: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: flex-start;
+            font-size: 0.875rem;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        .checkbox-label input {
+            margin-right: 0.5rem;
+            margin-top: 0.2rem;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--bg-body);
+        }
+
+        /* Resultats */
+        .hidden {
+            display: none !important;
+        }
+
+        #result-box {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .tips-container {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: #166534;
+        }
+
+        /* Taula */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: var(--bg-body);
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        /* Flex helpers per a la targeta d'acció */
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
 </head>
 <body>
-    <header class="main-header">
-        <div class="header-content">
-            <h1>Panell de Sostenibilitat ASIX</h1>
-            <p>Eina de simulació i projecció estratègica de recursos</p>
-        </div>
+
+    <header>
+        <h1>Panell de Sostenibilitat ASIX</h1>
+        <p>Eina de simulació i projecció estratègica de recursos</p>
     </header>
 
-    <main class="dashboard">
-        <section class="card">
-            <div class="card-header">
-                <h2>Simulador de Consum Corrent</h2>
-                <p>Configuració de variables globals per a l'estimació de despesa</p>
-            </div>
-            
-            <div class="controls-grid">
-                <div class="input-group">
-                    <label for="indicator-select">Indicador d'Anàlisi</label>
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title">Simulador de Consum Corrent</h2>
+            <p class="card-subtitle">Configuració de variables globals per a l'estimació de despesa</p>
+
+            <div class="grid-controls">
+                <div class="control-group">
+                    <label class="control-label">Indicador d'Anàlisi</label>
                     <select id="indicator-select" onchange="gestionarFiltres()">
                         <option value="electricitat">Consum Elèctric (kWh)</option>
                         <option value="aigua">Consum d'Aigua (L)</option>
                         <option value="oficina">Material d'Oficina (€)</option>
                         <option value="neteja">Productes de Neteja (€)</option>
-                        <option value="manteniment">Manteniment i Residus (€)</option>
+                        <option value="manteniment">Manteniment (€)</option>
                     </select>
                 </div>
 
-                <div class="input-group">
-                    <label for="period-select">Període d'Avaluació</label>
+                <div class="control-group">
+                    <label class="control-label">Període d'Avaluació</label>
                     <select id="period-select">
                         <option value="any">Any Natural (12 mesos)</option>
-                        <option value="curs">Curs Acadèmic (Set. - Juny)</option>
+                        <option value="curs">Curs Escolar (10 mesos)</option>
                     </select>
                 </div>
 
-                <div class="input-group" id="ipc-control-group" style="display: none;">
-                    <label for="ipc-input" title="Aplicable només a indicadors econòmics">Variació IPC (%)</label>
-                    <div class="ipc-wrapper">
-                        <input type="number" id="ipc-input" value="3.1" step="0.1">
-                        <span class="ipc-symbol">%</span>
+                <div class="control-group" id="ipc-control-group">
+                    <label class="control-label">Variació IPC (%)</label>
+                    <div class="input-with-suffix">
+                        <input type="number" id="ipc-input" step="0.1" value="3.1">
+                        <span>%</span>
                     </div>
                 </div>
 
-                <div class="input-group" id="solar-control-group">
-                    <label for="solar-input" title="Projecció de nova potència fotovoltaica">Ampliació Fotovoltaica (%)</label>
-                    <div class="ipc-wrapper">
-                        <input type="number" id="solar-input" value="0" step="10">
-                        <span class="ipc-symbol">%</span>
+                <div class="control-group" id="solar-control-group">
+                    <label class="control-label">Plaques Solars (Extra %)</label>
+                    <div class="input-with-suffix">
+                        <input type="number" id="solar-input" step="1" min="0" max="100" value="0">
+                        <span>%</span>
                     </div>
                 </div>
 
-                <div class="input-group" id="water-control-group" style="display: none;">
-                    <label>Pla d'Eficiència Hídrica</label>
+                <div class="control-group" id="water-control-group" style="display: none;">
+                    <label class="control-label">Pla d'Eficiència Hídrica</label>
                     <div class="checkbox-group">
-                        <label><input type="checkbox" id="chk-aireadores" value="10"> Instal·lació d'airejadors (-10%)</label>
-                        <label><input type="checkbox" id="chk-cisternas" value="15"> Optimització de cisternes (-15%)</label>
-                        <label><input type="checkbox" id="chk-sensores" value="10"> Aixetes amb sensor IR (-10%)</label>
-                    </div>
-                </div>
-
-                <div class="input-group btn-group">
-                    <button class="btn-primary" onclick="calcularConsum()">Executar Simulació</button>
-                </div>
-            </div>
-
-            <div id="result-box" class="result-box hidden">
-                <div class="result-content">
-                    <h3>Resultat de la Projecció</h3>
-                    <div id="calc-output" class="highlight">0</div>
-                    <div class="tips">
-                        <p id="tips-box"></p>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-aireadores"> Instal·lació d'airejadors d'alta eficiència (-12%)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-cisternas"> Electrovàlvules de tall automàtic (-20%)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-sensores"> Monitorització de fugues IoT (-15%)
+                        </label>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <section class="card">
-            <div class="card-header flex-header">
+            <button onclick="calcularConsum()">Executar Simulació</button>
+        </div>
+
+        <div id="result-box" class="card hidden">
+            <h2 class="card-title">Resultats de la Projecció</h2>
+            <div id="calc-output" style="margin-top: 1rem;">
+                </div>
+            <div class="tips-container">
+                <strong>Anàlisi: </strong> <span id="tips-box"></span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="flex-between" style="margin-bottom: 1rem;">
                 <div>
-                    <h2>Pla d'Acció Circular (Projecció 3 Anys)</h2>
-                    <p>Informe detallat de reducció de costos per centre de despesa</p>
+                    <h2 class="card-title">Pla d'Acció Circular (Projecció 3 Anys)</h2>
+                    <p class="card-subtitle" style="border: none; padding: 0; margin: 0;">Informe detallat de reducció de costos per centre de despesa</p>
                 </div>
-                <button class="btn-secondary" onclick="aplicarPlaReduccio()">Generar Informe Global</button>
+                <button class="btn-outline" onclick="aplicarPlaReduccio()">Generar Informe Global</button>
             </div>
 
             <div id="plan-results" class="hidden">
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Centre de Despesa</th>
-                                <th>Projecció Base</th>
-                                <th>Objectiu Fixat</th>
-                                <th class="text-right">Estalvi Estimat</th>
-                            </tr>
-                        </thead>
-                        <tbody id="plan-table-body">
-                            </tbody>
-                    </table>
-                </div>
-
-                <div class="justificacio-pla">
-                    <h3>Justificació Tècnica de Mesures</h3>
-                    <div class="accordion-grid">
-                        <details class="eco-detail">
-                            <summary>Eficiència i Transició Energètica</summary>
-                            <p>Desplegament de polítiques d'optimització de franges horàries i maximització de l'autoconsum a través de la xarxa fotovoltaica instal·lada als edificis principals.</p>
-                        </details>
-                        <details class="eco-detail">
-                            <summary>Gestió de Recursos Hídrics</summary>
-                            <p>Actualització de la infraestructura sanitària mitjançant reductors de cabal mecànics i sistemes de tall automatitzat per infrarojos per mitigar el malbaratament operatiu.</p>
-                        </details>
-                        <details class="eco-detail">
-                            <summary>Política de Compra Centralitzada i Residus</summary>
-                            <p>Implementació de protocols de compra agregada, priorització de proveïdors amb certificació ecològica i reducció progressiva d'envasos no retornables a les àrees de manteniment.</p>
-                        </details>
-                    </div>
-                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicador</th>
+                            <th>Projecció Base</th>
+                            <th>Objectiu Target</th>
+                            <th class="text-right">Estalvi Estimat</th>
+                        </tr>
+                    </thead>
+                    <tbody id="plan-table-body">
+                        </tbody>
+                </table>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
 
     <script src="js/app.js"></script>
 </body>
