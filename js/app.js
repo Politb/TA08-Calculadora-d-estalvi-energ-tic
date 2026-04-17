@@ -1,25 +1,23 @@
 /**
  * LÒGICA DE NEGOCI: CALCULADORA DE SOSTENIBILITAT ASIX
- * Versió: 3.4 (Càlcul realista de consum diari d'aigua)
+ * Versió: 4.0 (Amb Vinyetes al Pla d'Acció)
  */
 
-// 1. Dades base de consum (Ara l'aigua es considera consum DIARI lectiu)
 const dadesBase = {
     electricitat: {
         consumDiariLectiu: 398.55,  
         consumDiariVacances: 185.64,
         produccioDiaria: 43.57      
     },
-    aigua: 6245,          // Litres per dia laborable
-    oficina: 225.50,      // € mes base
-    neteja: 110.55,       // € mes base
-    manteniment: 283.45   // € mes base
+    aigua: 6245,          
+    oficina: 225.50,      
+    neteja: 110.55,       
+    manteniment: 283.45   
 };
 
 const diesTotalsMes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const diesLaborablesMes = [17, 20, 23, 16, 23, 20, 10, 0, 17, 23, 22, 15];
 
-// Índexs de correcció segons el mes (Gener = 0, Desembre = 11)
 const estacionalitat = {
     electricitat: [1.3, 1.2, 1.0, 0.9, 0.8, 0.7, 0.2, 0.0, 0.8, 1.0, 1.2, 1.3],
     aigua:        [0.9, 0.9, 1.0, 1.1, 1.2, 1.3, 0.2, 0.0, 1.1, 1.0, 0.9, 0.9], 
@@ -36,16 +34,12 @@ const consells = {
     manteniment: "Recomanació Operativa: El manteniment preventiu dels sensors IoT allarga la vida útil de la instal·lació un 25%."
 };
 
-/**
- * Gestiona quins inputs es mostren segons l'indicador seleccionat
- */
 function gestionarFiltres() {
     const tipus = document.getElementById("indicator-select").value;
     const ipcGroup = document.getElementById("ipc-control-group");
     const solarGroup = document.getElementById("solar-control-group");
     const waterGroup = document.getElementById("water-control-group");
 
-    // L'IPC és visible SEMPRE per afectar inversions o materials
     ipcGroup.style.display = 'flex';
 
     if (tipus === 'electricitat') {
@@ -62,9 +56,6 @@ function gestionarFiltres() {
 
 document.addEventListener('DOMContentLoaded', gestionarFiltres);
 
-/**
- * Càlcul principal de consum i costos d'inversió
- */
 function calcularConsum() {
     const tipus = document.getElementById("indicator-select").value;
     const periode = document.getElementById("period-select").value;
@@ -74,7 +65,6 @@ function calcularConsum() {
     const factorIPC = 1 + (ipc / 100);
     const factorSolarProduccio = 1 + (extraSolarPercent / 100);
     
-    // Mesures d'aigua
     let estalviAiguaPercent = 0;
     const chkAireadors = document.getElementById("chk-aireadores").checked; 
     const chkValvules = document.getElementById("chk-cisternas").checked;   
@@ -90,7 +80,6 @@ function calcularConsum() {
     let totalAcumulat = 0;
     let mesosACalcular = (periode === "any") ? [0,1,2,3,4,5,6,7,8,9,10,11] : [8,9,10,11,0,1,2,3,4,5];
 
-    // Bucle de càlcul mes a mes
     mesosACalcular.forEach(mesIndex => {
         let multEstacional = estacionalitat[tipus] ? estacionalitat[tipus][mesIndex] : 1;
         let variabilitat = 1 + (Math.random() * 0.06 - 0.03); 
@@ -108,7 +97,6 @@ function calcularConsum() {
             totalAcumulat += consumNet * multEstacional * variabilitat;
 
         } else if (tipus === 'aigua') {
-            // CORRECCIÓ: Consum diari * dies laborables reals del mes
             totalAcumulat += dadesBase[tipus] * diesLaborablesMes[mesIndex] * multEstacional * variabilitat;
         } else {
             totalAcumulat += dadesBase[tipus] * multEstacional * variabilitat;
@@ -118,7 +106,6 @@ function calcularConsum() {
     const outputDiv = document.getElementById("calc-output");
     
     if (tipus === 'electricitat') {
-        // --- INVERSIÓ ELÈCTRICA ---
         const numPlaques = Math.round((extraSolarPercent / 100) * 136);
         const kWpInstalats = numPlaques * 0.45; 
         
@@ -151,7 +138,6 @@ function calcularConsum() {
         outputDiv.innerHTML = html;
 
     } else if (tipus === 'aigua') {
-        // --- INVERSIÓ HÍDRICA (8 banys) ---
         totalAcumulat = totalAcumulat * factorAigua; 
         
         let inversioBaseAigua = 0;
@@ -183,7 +169,6 @@ function calcularConsum() {
         outputDiv.innerHTML = html;
 
     } else {
-        // --- RESTA D'INDICADORS ---
         totalAcumulat = totalAcumulat * factorIPC; 
         outputDiv.innerHTML = `
             <div>
@@ -198,52 +183,42 @@ function calcularConsum() {
 }
 
 /**
- * Genera l'informe global de la taula
+ * Genera l'informe global (Ara inyecta vinyetes descriptives en lloc d'una taula)
  */
 function aplicarPlaReduccio() {
-    const tbody = document.getElementById("plan-table-body");
-    tbody.innerHTML = ""; 
-    const ipc = parseFloat(document.getElementById("ipc-input").value) || 0;
-    const factorIPC_Triennal = Math.pow(1 + (ipc/100), 3); 
+    const resultContainer = document.getElementById("plan-results");
+    
+    // Inyectem el codi HTML de les 3 vinyetes explicatives
+    resultContainer.innerHTML = `
+        <div class="plan-grid">
+            <div class="plan-card-item">
+                <h3>⚡ Consum Elèctric</h3>
+                <ul>
+                    <li><strong>Plaques Solars:</strong> Instal·lació de mòduls fotovoltaics per a l'autoconsum, reduint dràsticament la dependència de la xarxa elèctrica i aprofitant les hores de major radiació solar durant la jornada lectiva de l'institut.</li>
+                    <li><strong>Llum Automàtica:</strong> Implementació de sensors de presència intel·ligents a les aules i passadissos per garantir que la il·luminació s'apaga automàticament quan els espais queden buits, evitant el consum fantasma.</li>
+                </ul>
+            </div>
+            
+            <div class="plan-card-item">
+                <h3>💧 Consum d'Aigua</h3>
+                <ul>
+                    <li><strong>Instal·lació d'airejadors:</strong> Col·locació de filtres d'alta eficiència a les aixetes que barregen l'aigua amb aire. Redueixen el cabal sense perdre la sensació de pressió al rentar-se les mans.</li>
+                    <li><strong>Electrovàlvules de tall automàtic:</strong> Sistema de seguretat que talla el subministrament general d'aigua dels banys fora de l'horari escolar i caps de setmana per evitar pèrdues i vandalisme.</li>
+                    <li><strong>Monitorització de fugues (IoT):</strong> Sensors de cabal connectats que detecten fluxos d'aigua constants inusuals (com una cisterna trencada) i envien una alerta immediata a l'equip de manteniment.</li>
+                </ul>
+            </div>
 
-    const indicadors = [
-        { id: 'electricitat', nom: 'Consum Elèctric', unitat: 'kWh' },
-        { id: 'aigua', nom: 'Recursos Hídrics', unitat: 'L' },
-        { id: 'oficina', nom: 'Material d\'Oficina', unitat: '€' },
-        { id: 'neteja', nom: 'Productes de Neteja', unitat: '€' },
-        { id: 'manteniment', nom: 'Manteniment Global', unitat: '€' }
-    ];
+            <div class="plan-card-item">
+                <h3>📦 Gestió de Material</h3>
+                <ul>
+                    <li style="color: var(--text-muted); font-style: italic;">
+                        <strong>Fase d'estudi:</strong> Les mesures específiques per a l'optimització de material d'oficina, productes de neteja i pressupost de manteniment general encara no estan definides. Actualment es troben en fase d'anàlisi i avaluació per part del comitè de sostenibilitat de l'institut per garantir la seva viabilitat.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    `;
 
-    indicadors.forEach(ind => {
-        let baseAnual = 0;
-        for(let i=0; i<12; i++) {
-            let mult = estacionalitat[ind.id] ? estacionalitat[ind.id][i] : 1;
-            if (ind.id === 'electricitat') {
-                baseAnual += (dadesBase.electricitat.consumDiariLectiu * diesLaborablesMes[i] + dadesBase.electricitat.consumDiariVacances * (diesTotalsMes[i] - diesLaborablesMes[i])) * mult;
-            } else if (ind.id === 'aigua') {
-                // CORRECCIÓ: Consum diari * dies laborables reals per mes
-                baseAnual += dadesBase.aigua * diesLaborablesMes[i] * mult;
-            } else {
-                baseAnual += dadesBase[ind.id] * mult;
-            }
-        }
-
-        if (ind.unitat === '€') {
-            baseAnual *= factorIPC_Triennal;
-        }
-
-        let objectiu = baseAnual * 0.75; 
-        let estalvi = baseAnual - objectiu;
-
-        let tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td><strong>${ind.nom}</strong></td>
-            <td>${baseAnual.toLocaleString('ca-ES', {maximumFractionDigits: 0})} ${ind.unitat}</td>
-            <td style="color: var(--primary-dark); font-weight: 500;">${objectiu.toLocaleString('ca-ES', {maximumFractionDigits: 0})} ${ind.unitat}</td>
-            <td class="text-right" style="color: #15803d; font-weight: 600;">-${estalvi.toLocaleString('ca-ES', {maximumFractionDigits: 0})} ${ind.unitat}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-
-    document.getElementById("plan-results").classList.remove("hidden");
+    // Mostrem el contenidor
+    resultContainer.classList.remove("hidden");
 }

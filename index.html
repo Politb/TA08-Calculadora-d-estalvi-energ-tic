@@ -176,7 +176,6 @@
             background-color: var(--bg-body);
         }
 
-        /* Resultats */
         .hidden {
             display: none !important;
         }
@@ -197,31 +196,52 @@
             color: #166534;
         }
 
-        /* Taula */
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        /* NOUS ESTILS PER A LES VINYETES DEL PLA D'ACCIÓ */
+        .plan-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
             margin-top: 1rem;
         }
 
-        th, td {
-            text-align: left;
-            padding: 0.75rem;
-            border-bottom: 1px solid var(--border);
+        .plan-card-item {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .plan-card-item h3 {
+            font-size: 1.1rem;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .plan-card-item ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .plan-card-item li {
             font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+            padding-left: 1.25rem;
+            position: relative;
         }
 
-        th {
-            background-color: var(--bg-body);
-            font-weight: 600;
-            color: var(--text-muted);
+        .plan-card-item li::before {
+            content: "•";
+            color: var(--primary);
+            font-size: 1.2rem;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            top: -2px;
         }
 
-        .text-right {
-            text-align: right;
-        }
-
-        /* Flex helpers per a la targeta d'acció */
         .flex-between {
             display: flex;
             justify-content: space-between;
@@ -299,7 +319,7 @@
         <div id="result-box" class="card hidden">
             <h2 class="card-title">Resultats de la Projecció</h2>
             <div id="calc-output" style="margin-top: 1rem;">
-                </div>
+            </div>
             <div class="tips-container">
                 <strong>Anàlisi: </strong> <span id="tips-box"></span>
             </div>
@@ -308,25 +328,13 @@
         <div class="card">
             <div class="flex-between" style="margin-bottom: 1rem;">
                 <div>
-                    <h2 class="card-title">Pla d'Acció Circular (Projecció 3 Anys)</h2>
-                    <p class="card-subtitle" style="border: none; padding: 0; margin: 0;">Informe detallat de reducció de costos per centre de despesa</p>
+                    <h2 class="card-title">Pla d'Acció de Sostenibilitat</h2>
+                    <p class="card-subtitle" style="border: none; padding: 0; margin: 0;">Detall de les mesures estratègiques per àrea</p>
                 </div>
                 <button class="btn-outline" onclick="aplicarPlaReduccio()">Generar Informe Global</button>
             </div>
 
             <div id="plan-results" class="hidden">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Indicador</th>
-                            <th>Projecció Base</th>
-                            <th>Objectiu Target</th>
-                            <th class="text-right">Estalvi Estimat</th>
-                        </tr>
-                    </thead>
-                    <tbody id="plan-table-body">
-                        </tbody>
-                </table>
             </div>
         </div>
     </div>
