@@ -84,6 +84,10 @@
             margin-bottom: 2rem;
         }
 
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
         .control-group {
             display: flex;
             flex-direction: column;
@@ -137,6 +141,12 @@
             gap: 0.75rem;
         }
 
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+        }
+
         .checkbox-label {
             display: flex;
             align-items: flex-start;
@@ -149,6 +159,7 @@
             margin-right: 0.5rem;
             margin-top: 0.2rem;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
         button {
@@ -213,6 +224,7 @@
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--text-main);
+            word-break: break-word;
         }
         
         .summary-item .sub-value {
@@ -224,13 +236,13 @@
 
         .chart-container {
             width: 100%;
-            height: 300px;
+            height: 350px;
             margin-top: 2rem;
             padding-top: 1.5rem;
             border-top: 1px solid var(--border);
+            position: relative;
         }
 
-        /* Vinyetes del Pla d'Acció */
         .plan-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -281,6 +293,39 @@
             justify-content: space-between;
             align-items: center;
         }
+
+        /* RESPONSIVE DESIGN (Mòbils i Tablets Petites) */
+        @media (max-width: 768px) {
+            header {
+                padding: 2rem 1rem 4rem 1rem;
+            }
+
+            .container {
+                margin-top: -2.5rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .flex-between {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .flex-between button {
+                width: 100%;
+            }
+
+            .chart-container {
+                height: 400px; /* Donem més espai vertical al gràfic en mòbil */
+            }
+
+            .summary-item .value {
+                font-size: 1.5rem; /* Text una mica més petit en resultats grans */
+            }
+        }
     </style>
 </head>
 <body>
@@ -296,9 +341,9 @@
             <p class="card-subtitle">Selecciona els indicadors a avaluar simultàniament</p>
 
             <div class="grid-controls">
-                <div class="control-group" style="grid-column: span 2;">
+                <div class="control-group full-width">
                     <label class="control-label">Àrees a incloure en el càlcul (Pots marcar-ne vàries)</label>
-                    <div class="checkbox-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                    <div class="checkbox-group checkbox-grid">
                         <label class="checkbox-label">
                             <input type="checkbox" class="indicator-chk" value="electricitat" onchange="gestionarFiltres()" checked> Consum Elèctric
                         </label>
@@ -341,9 +386,9 @@
                     </div>
                 </div>
 
-                <div class="control-group" id="water-control-group" style="display: none;">
+                <div class="control-group full-width" id="water-control-group" style="display: none;">
                     <label class="control-label">Pla d'Eficiència Hídrica</label>
-                    <div class="checkbox-group">
+                    <div class="checkbox-group checkbox-grid">
                         <label class="checkbox-label">
                             <input type="checkbox" id="chk-aireadores"> Instal·lació d'airejadors d'alta eficiència (-12%)
                         </label>
