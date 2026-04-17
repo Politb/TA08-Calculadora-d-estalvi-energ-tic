@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panell de Sostenibilitat ASIX</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-body: #f8fafc;
@@ -160,6 +161,7 @@
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.2s;
+            width: 100%;
         }
 
         button:hover {
@@ -170,6 +172,7 @@
             background-color: transparent;
             color: var(--text-main);
             border: 1px solid var(--border);
+            width: auto;
         }
 
         .btn-outline:hover {
@@ -181,22 +184,53 @@
         }
 
         #result-box {
+            background-color: #ffffff;
+            border: 1px solid var(--border);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-item {
             background-color: #eff6ff;
-            border: 1px solid #bfdbfe;
+            padding: 1.5rem;
+            border-radius: 8px;
             border-left: 4px solid #3b82f6;
         }
 
-        .tips-container {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            color: #166534;
+        .summary-item h4 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
         }
 
-        /* NOUS ESTILS PER A LES VINYETES DEL PLA D'ACCIÓ */
+        .summary-item .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        
+        .summary-item .sub-value {
+            font-size: 0.85rem;
+            color: var(--primary-dark);
+            margin-top: 0.25rem;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Vinyetes del Pla d'Acció */
         .plan-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -258,19 +292,29 @@
 
     <div class="container">
         <div class="card">
-            <h2 class="card-title">Simulador de Consum Corrent</h2>
-            <p class="card-subtitle">Configuració de variables globals per a l'estimació de despesa</p>
+            <h2 class="card-title">Simulador Multicriteri</h2>
+            <p class="card-subtitle">Selecciona els indicadors a avaluar simultàniament</p>
 
             <div class="grid-controls">
-                <div class="control-group">
-                    <label class="control-label">Indicador d'Anàlisi</label>
-                    <select id="indicator-select" onchange="gestionarFiltres()">
-                        <option value="electricitat">Consum Elèctric (kWh)</option>
-                        <option value="aigua">Consum d'Aigua (L)</option>
-                        <option value="oficina">Material d'Oficina (€)</option>
-                        <option value="neteja">Productes de Neteja (€)</option>
-                        <option value="manteniment">Manteniment (€)</option>
-                    </select>
+                <div class="control-group" style="grid-column: span 2;">
+                    <label class="control-label">Àrees a incloure en el càlcul (Pots marcar-ne vàries)</label>
+                    <div class="checkbox-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="indicator-chk" value="electricitat" onchange="gestionarFiltres()" checked> Consum Elèctric
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="indicator-chk" value="aigua" onchange="gestionarFiltres()"> Consum d'Aigua
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="indicator-chk" value="oficina" onchange="gestionarFiltres()"> Material d'Oficina
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="indicator-chk" value="neteja" onchange="gestionarFiltres()"> Productes de Neteja
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="indicator-chk" value="manteniment" onchange="gestionarFiltres()"> Manteniment
+                        </label>
+                    </div>
                 </div>
 
                 <div class="control-group">
@@ -313,15 +357,18 @@
                 </div>
             </div>
 
-            <button onclick="calcularConsum()">Executar Simulació</button>
+            <button onclick="calcularConsum()">Generar Resum i Cronograma</button>
         </div>
 
         <div id="result-box" class="card hidden">
-            <h2 class="card-title">Resultats de la Projecció</h2>
-            <div id="calc-output" style="margin-top: 1rem;">
-            </div>
-            <div class="tips-container">
-                <strong>Anàlisi: </strong> <span id="tips-box"></span>
+            <h2 class="card-title">Resum de la Projecció</h2>
+            <p class="card-subtitle">Dades estimades segons les variables aplicades</p>
+            
+            <div id="calc-output" class="summary-grid">
+                </div>
+
+            <div class="chart-container">
+                <canvas id="history-chart"></canvas>
             </div>
         </div>
 
@@ -331,7 +378,7 @@
                     <h2 class="card-title">Pla d'Acció de Sostenibilitat</h2>
                     <p class="card-subtitle" style="border: none; padding: 0; margin: 0;">Detall de les mesures estratègiques per àrea</p>
                 </div>
-                <button class="btn-outline" onclick="aplicarPlaReduccio()">Generar Informe Global</button>
+                <button class="btn-outline" onclick="aplicarPlaReduccio()">Veure Mesures</button>
             </div>
 
             <div id="plan-results" class="hidden">

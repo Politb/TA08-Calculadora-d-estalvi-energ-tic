@@ -1,229 +1,249 @@
 /**
  * LÒGICA DE NEGOCI: CALCULADORA DE SOSTENIBILITAT ASIX
- * Versió: 4.0 (Amb Vinyetes al Pla d'Acció)
+ * Versió: 5.0 (Multiselecció + Resum Unificat + Gràfic Històric Chart.js)
  */
 
+// Dades base 
 const dadesBase = {
-  electricitat: {
-    consumDiariLectiu: 398.55,
-    consumDiariVacances: 185.64,
-    produccioDiaria: 43.57,
-  },
-  aigua: 6245,
-  oficina: 225.5,
-  neteja: 110.55,
-  manteniment: 283.45,
+    electricitat: {
+        consumDiariLectiu: 398.55,  
+        consumDiariVacances: 185.64,
+        produccioDiaria: 43.57      
+    },
+    aigua: 6245,          
+    oficina: 225.50,      
+    neteja: 110.55,       
+    manteniment: 283.45   
+};
+
+// Preus estimats per unificar el cronograma en EUROS (€)
+const tarifes = {
+    electricitat: 0.16, // €/kWh
+    aigua: 0.0025       // €/Litre
 };
 
 const diesTotalsMes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const diesLaborablesMes = [17, 20, 23, 16, 23, 20, 10, 0, 17, 23, 22, 15];
 
 const estacionalitat = {
-  electricitat: [1.3, 1.2, 1.0, 0.9, 0.8, 0.7, 0.2, 0.0, 0.8, 1.0, 1.2, 1.3],
-  aigua: [0.9, 0.9, 1.0, 1.1, 1.2, 1.3, 0.2, 0.0, 1.1, 1.0, 0.9, 0.9],
-  oficina: [1.1, 1.0, 1.0, 1.0, 1.0, 1.2, 0.0, 0.0, 1.5, 1.0, 1.0, 0.8],
-  neteja: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0, 1.2, 1.0, 1.0, 1.0],
-  manteniment: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+    electricitat: [1.3, 1.2, 1.0, 0.9, 0.8, 0.7, 0.2, 0.0, 0.8, 1.0, 1.2, 1.3],
+    aigua:        [0.9, 0.9, 1.0, 1.1, 1.2, 1.3, 0.2, 0.0, 1.1, 1.0, 0.9, 0.9], 
+    oficina:      [1.1, 1.0, 1.0, 1.0, 1.0, 1.2, 0.0, 0.0, 1.5, 1.0, 1.0, 0.8], 
+    neteja:       [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0, 1.2, 1.0, 1.0, 1.0],
+    manteniment:  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] 
 };
 
-const consells = {
-  electricitat:
-    "Nota d'Anàlisi: El cost d'inversió segueix els barems de potència instal·lada (kWp) ajustats per l'IPC seleccionat. El consum en kWh es manté aliè a la inflació.",
-  aigua:
-    "Seguretat Hídrica: L'aplicació de talls automatitzats i sensors IoT té un impacte massiu en edificis de gran afluència, evitant la pèrdua de centenars de milers de litres anuals.",
-  oficina:
-    "Recomanació Operativa: L'impacte de l'IPC suggereix una centralització de compres per volum de material no fungible.",
-  neteja:
-    "Recomanació Operativa: Prioritzar productes concentrats per reduir el cost logístic afectat per la inflació.",
-  manteniment:
-    "Recomanació Operativa: El manteniment preventiu dels sensors IoT allarga la vida útil de la instal·lació un 25%.",
-};
+// Variable per emmagatzemar la instància del gràfic i poder-lo actualitzar
+let chartInstance = null;
 
+/**
+ * Mostra o amaga els grups d'opcions en funció dels checkboxes seleccionats
+ */
 function gestionarFiltres() {
-  const tipus = document.getElementById("indicator-select").value;
-  const ipcGroup = document.getElementById("ipc-control-group");
-  const solarGroup = document.getElementById("solar-control-group");
-  const waterGroup = document.getElementById("water-control-group");
+    const checkboxes = document.querySelectorAll('.indicator-chk:checked');
+    const seleccio = Array.from(checkboxes).map(cb => cb.value);
+    
+    const solarGroup = document.getElementById("solar-control-group");
+    const waterGroup = document.getElementById("water-control-group");
 
-  ipcGroup.style.display = "flex";
+    // Si hi ha electricitat seleccionada, mostrem plaques
+    if (seleccio.includes('electricitat')) solarGroup.style.display = 'flex';
+    else solarGroup.style.display = 'none';
 
-  if (tipus === "electricitat") {
-    solarGroup.style.display = "flex";
-    waterGroup.style.display = "none";
-  } else if (tipus === "aigua") {
-    solarGroup.style.display = "none";
-    waterGroup.style.display = "flex";
-  } else {
-    solarGroup.style.display = "none";
-    waterGroup.style.display = "none";
-  }
+    // Si hi ha aigua seleccionada, mostrem eficiència hídrica
+    if (seleccio.includes('aigua')) waterGroup.style.display = 'flex';
+    else waterGroup.style.display = 'none';
 }
 
-document.addEventListener("DOMContentLoaded", gestionarFiltres);
+document.addEventListener('DOMContentLoaded', gestionarFiltres);
 
+/**
+ * Càlcul principal: Ara processa TOTS els indicadors seleccionats
+ */
 function calcularConsum() {
-  const tipus = document.getElementById("indicator-select").value;
-  const periode = document.getElementById("period-select").value;
-  const ipc = parseFloat(document.getElementById("ipc-input").value) || 0;
-  const extraSolarPercent =
-    parseFloat(document.getElementById("solar-input").value) || 0;
-
-  const factorIPC = 1 + ipc / 100;
-  const factorSolarProduccio = 1 + extraSolarPercent / 100;
-
-  let estalviAiguaPercent = 0;
-  const chkAireadors = document.getElementById("chk-aireadores").checked;
-  const chkValvules = document.getElementById("chk-cisternas").checked;
-  const chkIoT = document.getElementById("chk-sensores").checked;
-
-  if (tipus === "aigua") {
-    if (chkAireadors) estalviAiguaPercent += 12;
-    if (chkValvules) estalviAiguaPercent += 20;
-    if (chkIoT) estalviAiguaPercent += 15;
-  }
-  const factorAigua = 1 - estalviAiguaPercent / 100;
-
-  let totalAcumulat = 0;
-  let mesosACalcular =
-    periode === "any"
-      ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-      : [8, 9, 10, 11, 0, 1, 2, 3, 4, 5];
-
-  mesosACalcular.forEach((mesIndex) => {
-    let multEstacional = estacionalitat[tipus]
-      ? estacionalitat[tipus][mesIndex]
-      : 1;
-    let variabilitat = 1 + (Math.random() * 0.06 - 0.03);
-
-    if (tipus === "electricitat") {
-      let diesLectiusMes = Math.min(
-        (diesLaborablesMes[mesIndex] / 5) * 7,
-        diesTotalsMes[mesIndex],
-      );
-      let diesVacances = diesTotalsMes[mesIndex] - diesLectiusMes;
-
-      let consumMes =
-        dadesBase.electricitat.consumDiariLectiu * diesLectiusMes +
-        dadesBase.electricitat.consumDiariVacances * diesVacances;
-
-      let produccioMes =
-        dadesBase.electricitat.produccioDiaria *
-        factorSolarProduccio *
-        diesTotalsMes[mesIndex];
-
-      let consumNet = Math.max(0, consumMes - produccioMes);
-      totalAcumulat += consumNet * multEstacional * variabilitat;
-    } else if (tipus === "aigua") {
-      totalAcumulat +=
-        dadesBase[tipus] *
-        diesLaborablesMes[mesIndex] *
-        multEstacional *
-        variabilitat;
-    } else {
-      totalAcumulat += dadesBase[tipus] * multEstacional * variabilitat;
+    const checkboxes = document.querySelectorAll('.indicator-chk:checked');
+    const seleccio = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (seleccio.length === 0) {
+        alert("Si us plau, selecciona com a mínim una àrea a avaluar.");
+        return;
     }
-  });
 
-  const outputDiv = document.getElementById("calc-output");
+    const periode = document.getElementById("period-select").value;
+    const ipc = parseFloat(document.getElementById("ipc-input").value) || 0;
+    const factorIPC = 1 + (ipc / 100);
+    let mesosACalcular = (periode === "any") ? [0,1,2,3,4,5,6,7,8,9,10,11] : [8,9,10,11,0,1,2,3,4,5];
 
-  if (tipus === "electricitat") {
-    const numPlaques = Math.round((extraSolarPercent / 100) * 136);
-    const kWpInstalats = numPlaques * 0.45;
+    let outputHTML = "";
+    let dadesGrafic = {
+        labels: ["Històric 2024", "Històric 2025", "Projecció Optimitada (Ara)"],
+        datasets: []
+    };
 
-    let preuPerKWp = 0;
-    if (kWpInstalats > 0 && kWpInstalats <= 3) preuPerKWp = 1700;
-    else if (kWpInstalats > 3 && kWpInstalats <= 6) preuPerKWp = 1500;
-    else if (kWpInstalats > 6) preuPerKWp = 1300;
+    // Iterem per cada àrea seleccionada per generar el resum i les dades del gràfic
+    seleccio.forEach(tipus => {
+        let totalAcumulat = 0;
 
-    const costInversioFinal = kWpInstalats * preuPerKWp * factorIPC;
+        // --- Lògica Específica per Àrea ---
+        if (tipus === 'electricitat') {
+            const extraSolarPercent = parseFloat(document.getElementById("solar-input").value) || 0;
+            const factorSolar = 1 + (extraSolarPercent / 100);
+            
+            mesosACalcular.forEach(mesIndex => {
+                let multEst = estacionalitat.electricitat[mesIndex];
+                let lectius = Math.min((diesLaborablesMes[mesIndex] / 5) * 7, diesTotalsMes[mesIndex]);
+                let vac = diesTotalsMes[mesIndex] - lectius;
+                
+                let consumMes = (dadesBase.electricitat.consumDiariLectiu * lectius) + 
+                                (dadesBase.electricitat.consumDiariVacances * vac);
+                let produccioMes = (dadesBase.electricitat.produccioDiaria * factorSolar) * diesTotalsMes[mesIndex];
+                
+                totalAcumulat += Math.max(0, consumMes - produccioMes) * multEst;
+            });
 
-    let html = `
-            <div class="res-item" style="margin-bottom: 1.5rem;">
-                <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Consum Net Estimat</span>
-                <span style="font-size: 2.25rem; font-weight: 600; display: block; color: var(--text-main);">${totalAcumulat.toLocaleString("ca-ES", { maximumFractionDigits: 0 })} kWh</span>
-            </div>
-        `;
-
-    if (extraSolarPercent > 0) {
-      html += `
-                <div class="res-item" style="padding-top: 1.25rem; border-top: 1px dotted var(--border);">
-                    <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Inversió Fotovoltaica (CAPEX)</span>
-                    <span style="font-size: 1.75rem; font-weight: 600; display: block; color: var(--primary-dark);">${costInversioFinal.toLocaleString("ca-ES", { maximumFractionDigits: 0 })} €</span>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
-                        Projecte: <strong>${numPlaques} plaques</strong> (~${kWpInstalats.toFixed(1)} kWp).<br>
-                        Ajustat amb un IPC del <strong>${ipc}%</strong> sobre el mercat actual.
-                    </p>
+            const costMantenimentInversio = extraSolarPercent > 0 ? "Inversió inclosa" : "Sense Plaques";
+            
+            outputHTML += `
+                <div class="summary-item">
+                    <h4>⚡ Electricitat</h4>
+                    <div class="value">${totalAcumulat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} kWh</div>
+                    <div class="sub-value">Impacte Estimat: ${(totalAcumulat * tarifes.electricitat).toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
                 </div>
             `;
-    }
-    outputDiv.innerHTML = html;
-  } else if (tipus === "aigua") {
-    totalAcumulat = totalAcumulat * factorAigua;
 
-    let inversioBaseAigua = 0;
-    if (chkAireadors) inversioBaseAigua += 24 * 15;
-    if (chkValvules) inversioBaseAigua += 8 * 175;
-    if (chkIoT) inversioBaseAigua += 8 * 250;
+            afegirDadesAlGrafic(dadesGrafic, 'Electricitat (€)', totalAcumulat * tarifes.electricitat, '#f59e0b');
 
-    const inversioFinalAigua = inversioBaseAigua * factorIPC;
+        } else if (tipus === 'aigua') {
+            let estalviPercent = 0;
+            if (document.getElementById("chk-aireadores").checked) estalviPercent += 12; 
+            if (document.getElementById("chk-cisternas").checked) estalviPercent += 20;  
+            if (document.getElementById("chk-sensores").checked) estalviPercent += 15;
+            
+            const factorAigua = 1 - (estalviPercent / 100);
 
-    let html = `
-            <div class="res-item" style="margin-bottom: 1.5rem;">
-                <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Consum Hídric Estimat</span>
-                <span style="font-size: 2.25rem; font-weight: 600; display: block; color: var(--text-main);">${totalAcumulat.toLocaleString("ca-ES", { maximumFractionDigits: 0 })} L</span>
-            </div>
-        `;
+            mesosACalcular.forEach(mesIndex => {
+                totalAcumulat += dadesBase.aigua * diesLaborablesMes[mesIndex] * estacionalitat.aigua[mesIndex];
+            });
+            
+            totalAcumulat = totalAcumulat * factorAigua;
 
-    if (inversioFinalAigua > 0) {
-      html += `
-                <div class="res-item" style="padding-top: 1.25rem; border-top: 1px dotted var(--border);">
-                    <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Inversió en Seguretat Hídrica</span>
-                    <span style="font-size: 1.75rem; font-weight: 600; display: block; color: var(--primary-dark);">${inversioFinalAigua.toLocaleString("ca-ES", { maximumFractionDigits: 2 })} €</span>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
-                        Prevenció per a <strong>8 blocs sanitaris</strong> (24 aixetes).<br>
-                        Ajustat amb un IPC del <strong>${ipc}%</strong> sobre el preu de maquinari.
-                    </p>
+            outputHTML += `
+                <div class="summary-item" style="border-left-color: #0ea5e9;">
+                    <h4>💧 Aigua</h4>
+                    <div class="value">${totalAcumulat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} L</div>
+                    <div class="sub-value">Impacte Estimat: ${(totalAcumulat * tarifes.aigua).toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
                 </div>
             `;
-    }
-    outputDiv.innerHTML = html;
-  } else {
-    totalAcumulat = totalAcumulat * factorIPC;
-    outputDiv.innerHTML = `
-            <div>
-                <span style="font-size: 2.25rem; font-weight: 600; color: var(--text-main);">${totalAcumulat.toLocaleString("ca-ES", { maximumFractionDigits: 2 })} €</span>
-                <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Cost operatiu calculat amb una inflació del ${ipc}%</span>
-            </div>
-        `;
-  }
 
-  document.getElementById("tips-box").innerText = consells[tipus];
-  document.getElementById("result-box").classList.remove("hidden");
+            afegirDadesAlGrafic(dadesGrafic, 'Aigua (€)', totalAcumulat * tarifes.aigua, '#0ea5e9');
+
+        } else {
+            // Oficina, Neteja, Manteniment
+            mesosACalcular.forEach(mesIndex => {
+                totalAcumulat += dadesBase[tipus] * estacionalitat[tipus][mesIndex];
+            });
+            totalAcumulat = totalAcumulat * factorIPC;
+
+            let nomLabel = tipus === 'oficina' ? 'Material Oficina' : tipus === 'neteja' ? 'Neteja' : 'Manteniment';
+            let colorStr = tipus === 'oficina' ? '#8b5cf6' : tipus === 'neteja' ? '#10b981' : '#64748b';
+
+            outputHTML += `
+                <div class="summary-item" style="border-left-color: ${colorStr};">
+                    <h4>📦 ${nomLabel}</h4>
+                    <div class="value">${totalAcumulat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
+                    <div class="sub-value">IPC inclòs (${ipc}%)</div>
+                </div>
+            `;
+
+            afegirDadesAlGrafic(dadesGrafic, nomLabel + ' (€)', totalAcumulat, colorStr);
+        }
+    });
+
+    document.getElementById("calc-output").innerHTML = outputHTML;
+    document.getElementById("result-box").classList.remove("hidden");
+    
+    // Generar o actualitzar el cronograma
+    renderitzarGrafic(dadesGrafic);
 }
 
 /**
- * Genera l'informe global (Ara inyecta vinyetes descriptives en lloc d'una taula)
+ * Funció d'ajuda per crear les dades històriques simulades per al gràfic
+ */
+function afegirDadesAlGrafic(dadesGrafic, label, valorOptimitzat, color) {
+    // Simulem que el 2024 es va gastar un 25% més, i el 2025 un 15% més que la projecció optimitzada
+    let valor2024 = valorOptimitzat * 1.25; 
+    let valor2025 = valorOptimitzat * 1.15; 
+
+    dadesGrafic.datasets.push({
+        label: label,
+        data: [valor2024, valor2025, valorOptimitzat],
+        backgroundColor: color,
+        borderRadius: 4
+    });
+}
+
+/**
+ * Dibuixa el Cronograma utilitzant Chart.js
+ */
+function renderitzarGrafic(dadesGrafic) {
+    const ctx = document.getElementById('history-chart').getContext('2d');
+    
+    // Si ja existeix un gràfic previ, el destruïm per no encavalcar-los
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: dadesGrafic,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Cronograma Comparatiu de Costos Operatius (€)',
+                    font: { size: 16, family: '-apple-system' }
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cost Anual (€)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Genera l'informe global (Vinyetes)
  */
 function aplicarPlaReduccio() {
-  const resultContainer = document.getElementById("plan-results");
-
-  // Inyectem el codi HTML de les 3 vinyetes explicatives
-  resultContainer.innerHTML = `
+    const resultContainer = document.getElementById("plan-results");
+    
+    resultContainer.innerHTML = `
         <div class="plan-grid">
             <div class="plan-card-item">
                 <h3>⚡ Consum Elèctric</h3>
                 <ul>
-                    <li><strong>Plaques Solars:</strong> Instal·lació de mòduls fotovoltaics per a l'autoconsum, reduint dràsticament la dependència de la xarxa elèctrica i aprofitant les hores de major radiació solar durant la jornada lectiva de l'institut.</li>
-                    <li><strong>Llum Automàtica:</strong> Implementació de sensors de presència intel·ligents a les aules i passadissos per garantir que la il·luminació s'apaga automàticament quan els espais queden buits, evitant el consum fantasma.</li>
+                    <li><strong>Plaques Solars:</strong> Instal·lació de mòduls fotovoltaics per a l'autoconsum, reduint dràsticament la dependència de la xarxa.</li>
+                    <li><strong>Llum Automàtica:</strong> Implementació de sensors de presència intel·ligents a les aules i passadissos per evitar el consum fantasma.</li>
                 </ul>
             </div>
             
             <div class="plan-card-item">
                 <h3>💧 Consum d'Aigua</h3>
                 <ul>
-                    <li><strong>Instal·lació d'airejadors:</strong> Col·locació de filtres d'alta eficiència a les aixetes que barregen l'aigua amb aire. Redueixen el cabal sense perdre la sensació de pressió al rentar-se les mans.</li>
-                    <li><strong>Electrovàlvules de tall automàtic:</strong> Sistema de seguretat que talla el subministrament general d'aigua dels banys fora de l'horari escolar i caps de setmana per evitar pèrdues i vandalisme.</li>
-                    <li><strong>Monitorització de fugues (IoT):</strong> Sensors de cabal connectats que detecten fluxos d'aigua constants inusuals (com una cisterna trencada) i envien una alerta immediata a l'equip de manteniment.</li>
+                    <li><strong>Instal·lació d'airejadors:</strong> Col·locació de filtres d'alta eficiència a les aixetes que redueixen el cabal sense perdre pressió.</li>
+                    <li><strong>Electrovàlvules de tall automàtic:</strong> Sistema de seguretat que talla l'aigua dels banys fora de l'horari escolar.</li>
+                    <li><strong>Monitorització de fugues (IoT):</strong> Sensors de cabal que detecten fluxos constants inusuals i envien alertes al manteniment.</li>
                 </ul>
             </div>
 
@@ -231,13 +251,12 @@ function aplicarPlaReduccio() {
                 <h3>📦 Gestió de Material</h3>
                 <ul>
                     <li style="color: var(--text-muted); font-style: italic;">
-                        <strong>Fase d'estudi:</strong> Les mesures específiques per a l'optimització de material d'oficina, productes de neteja i pressupost de manteniment general encara no estan definides. Actualment es troben en fase d'anàlisi i avaluació per part del comitè de sostenibilitat de l'institut per garantir la seva viabilitat.
+                        <strong>Fase d'estudi:</strong> Les mesures per a l'optimització de material d'oficina, productes de neteja i manteniment es troben en fase d'anàlisi pel comitè de sostenibilitat.
                     </li>
                 </ul>
             </div>
         </div>
     `;
 
-  // Mostrem el contenidor
-  resultContainer.classList.remove("hidden");
+    resultContainer.classList.remove("hidden");
 }
