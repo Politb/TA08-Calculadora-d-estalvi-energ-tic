@@ -1,9 +1,8 @@
 /**
  * LÒGICA DE NEGOCI: CALCULADORA DE SOSTENIBILITAT ASIX
- * Versió: 7.0 (Històric inamovible i Projecció independent)
+ * Versió: 9.0 (Amb càlcul de % de reducció respecte a l'any anterior)
  */
 
-// Dades base 
 const dadesBase = {
     electricitat: {
         consumDiariLectiu: 398.55,  
@@ -16,7 +15,6 @@ const dadesBase = {
     manteniment: 283.45   
 };
 
-// Tarifes per al resum textual
 const tarifes = {
     electricitat: 0.16, 
     aigua: 0.0025       
@@ -40,16 +38,36 @@ function gestionarFiltres() {
     const seleccio = Array.from(checkboxes).map(cb => cb.value);
     
     const solarGroup = document.getElementById("solar-control-group");
+    const electricSensorsGroup = document.getElementById("electric-sensors-group");
     const waterGroup = document.getElementById("water-control-group");
 
-    if (seleccio.includes('electricitat')) solarGroup.style.display = 'flex';
-    else solarGroup.style.display = 'none';
+    if (seleccio.includes('electricitat')) {
+        solarGroup.style.display = 'flex';
+        electricSensorsGroup.style.display = 'flex'; 
+    } else {
+        solarGroup.style.display = 'none';
+        electricSensorsGroup.style.display = 'none';
+    }
 
     if (seleccio.includes('aigua')) waterGroup.style.display = 'flex';
     else waterGroup.style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', gestionarFiltres);
+
+// Funció auxiliar per calcular i formatar el percentatge de variació
+function formatarVariacio(base, optimitzat) {
+    if (base === 0) return '';
+    let variacio = ((optimitzat - base) / base) * 100;
+    
+    if (variacio < 0) {
+        return `<div style="font-size: 0.9rem; font-weight: 700; color: #16a34a; margin-top: 0.5rem;">📉 -${Math.abs(variacio).toFixed(1)}% respecte l'any passat</div>`;
+    } else if (variacio > 0) {
+        return `<div style="font-size: 0.9rem; font-weight: 700; color: #dc2626; margin-top: 0.5rem;">📈 +${variacio.toFixed(1)}% respecte l'any passat</div>`;
+    } else {
+        return `<div style="font-size: 0.9rem; font-weight: 700; color: #64748b; margin-top: 0.5rem;">➖ Sense variació</div>`;
+    }
+}
 
 function calcularConsum() {
     const checkboxes = document.querySelectorAll('.indicator-chk:checked');
@@ -72,13 +90,26 @@ function calcularConsum() {
     };
 
     seleccio.forEach(tipus => {
-        // Creem DUES variables: una per l'històric (inamovible) i una altra per la projecció
         let totalBase = 0;       
         let totalOptimitzat = 0; 
 
         if (tipus === 'electricitat') {
             const extraSolarPercent = parseFloat(document.getElementById("solar-input").value) || 0;
             const factorSolar = 1 + (extraSolarPercent / 100);
+            
+            let estalviLlumPercent = 0;
+            let inversioLlum = 0;
+
+            if (document.getElementById("chk-luces-banos").checked) {
+                estalviLlumPercent += 3;  
+                inversioLlum += 480;      
+            }
+            if (document.getElementById("chk-luces-pasillos").checked) {
+                estalviLlumPercent += 5;  
+                inversioLlum += 720;      
+            }
+
+            const factorConsumLlum = 1 - (estalviLlumPercent / 100);
             
             mesosACalcular.forEach(mesIndex => {
                 let multEst = estacionalitat.electricitat[mesIndex];
@@ -88,24 +119,28 @@ function calcularConsum() {
                 let consumMes = (dadesBase.electricitat.consumDiariLectiu * lectius) + 
                                 (dadesBase.electricitat.consumDiariVacances * vac);
                 
-                // Producció base (el que teníem abans, sense les plaques noves)
+                let consumMesOpt = consumMes * factorConsumLlum;
+
                 let produccioBaseMes = dadesBase.electricitat.produccioDiaria * diesTotalsMes[mesIndex];
-                // Producció optimitzada (aplicant el % extra de l'usuari)
                 let produccioOptMes = (dadesBase.electricitat.produccioDiaria * factorSolar) * diesTotalsMes[mesIndex];
                 
                 totalBase += Math.max(0, consumMes - produccioBaseMes) * multEst;
-                totalOptimitzat += Math.max(0, consumMes - produccioOptMes) * multEst;
+                totalOptimitzat += Math.max(0, consumMesOpt - produccioOptMes) * multEst;
             });
+
+            let htmlInversio = inversioLlum > 0 ? `<div class="investment">Inversio necessària: ${inversioLlum} €</div>` : '';
+            let textVariacio = formatarVariacio(totalBase, totalOptimitzat);
 
             outputHTML += `
                 <div class="summary-item">
                     <h4>⚡ Electricitat</h4>
                     <div class="value">${totalOptimitzat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} kWh</div>
                     <div class="sub-value">Impacte Estimat: ${(totalOptimitzat * tarifes.electricitat).toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
+                    ${textVariacio}
+                    ${htmlInversio}
                 </div>
             `;
 
-            // Passem el consum BASE per fixar els anys passats, i l'OPTIMITZAT per a la barra actual
             afegirDadesAlGrafic(dadesGrafic, 'Electricitat (kWh)', totalBase, totalOptimitzat, '#f59e0b');
 
         } else if (tipus === 'aigua') {
@@ -120,14 +155,15 @@ function calcularConsum() {
                 totalBase += dadesBase.aigua * diesLaborablesMes[mesIndex] * estacionalitat.aigua[mesIndex];
             });
             
-            // L'optimitzat sí que rep el descompte de l'eficiència hídrica
             totalOptimitzat = totalBase * factorAigua;
+            let textVariacio = formatarVariacio(totalBase, totalOptimitzat);
 
             outputHTML += `
                 <div class="summary-item" style="border-left-color: #0ea5e9;">
                     <h4>💧 Aigua</h4>
                     <div class="value">${totalOptimitzat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} L</div>
                     <div class="sub-value">Impacte Estimat: ${(totalOptimitzat * tarifes.aigua).toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
+                    ${textVariacio}
                 </div>
             `;
 
@@ -138,8 +174,8 @@ function calcularConsum() {
                 totalBase += dadesBase[tipus] * estacionalitat[tipus][mesIndex];
             });
             
-            // Per a neteja/manteniment/oficina apliquem l'IPC a la projecció futura
             totalOptimitzat = totalBase * factorIPC;
+            let textVariacio = formatarVariacio(totalBase, totalOptimitzat);
 
             let nomLabel = tipus === 'oficina' ? 'Material Oficina' : tipus === 'neteja' ? 'Neteja' : 'Manteniment';
             let colorStr = tipus === 'oficina' ? '#8b5cf6' : tipus === 'neteja' ? '#10b981' : '#64748b';
@@ -149,6 +185,7 @@ function calcularConsum() {
                     <h4>📦 ${nomLabel}</h4>
                     <div class="value">${totalOptimitzat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
                     <div class="sub-value">IPC inclòs (${ipc}%)</div>
+                    ${textVariacio}
                 </div>
             `;
 
@@ -162,12 +199,7 @@ function calcularConsum() {
     renderitzarGrafic(dadesGrafic);
 }
 
-/**
- * Ara rep el valor BASE (inamovible) i el valor OPTIMITZAT (dinàmic)
- */
 function afegirDadesAlGrafic(dadesGrafic, label, valorBase, valorOptimitzat, color) {
-    // Els anys 2024 i 2025 es basen estrictament en el "valorBase", sense l'optimització
-    // Simulem lleugeres variacions naturals (ex: al 2024 es va gastar un 2% més naturalment)
     let valor2024 = valorBase * 1.02; 
     let valor2025 = valorBase; 
 
