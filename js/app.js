@@ -1,6 +1,6 @@
 /**
  * LÒGICA DE NEGOCI: CALCULADORA DE SOSTENIBILITAT ASIX
- * Versió: 5.0 (Multiselecció + Resum Unificat + Gràfic Històric Chart.js)
+ * Versió: 7.0 (Històric inamovible i Projecció independent)
  */
 
 // Dades base 
@@ -16,10 +16,10 @@ const dadesBase = {
     manteniment: 283.45   
 };
 
-// Preus estimats per unificar el cronograma en EUROS (€)
+// Tarifes per al resum textual
 const tarifes = {
-    electricitat: 0.16, // €/kWh
-    aigua: 0.0025       // €/Litre
+    electricitat: 0.16, 
+    aigua: 0.0025       
 };
 
 const diesTotalsMes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -33,12 +33,8 @@ const estacionalitat = {
     manteniment:  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] 
 };
 
-// Variable per emmagatzemar la instància del gràfic i poder-lo actualitzar
 let chartInstance = null;
 
-/**
- * Mostra o amaga els grups d'opcions en funció dels checkboxes seleccionats
- */
 function gestionarFiltres() {
     const checkboxes = document.querySelectorAll('.indicator-chk:checked');
     const seleccio = Array.from(checkboxes).map(cb => cb.value);
@@ -46,20 +42,15 @@ function gestionarFiltres() {
     const solarGroup = document.getElementById("solar-control-group");
     const waterGroup = document.getElementById("water-control-group");
 
-    // Si hi ha electricitat seleccionada, mostrem plaques
     if (seleccio.includes('electricitat')) solarGroup.style.display = 'flex';
     else solarGroup.style.display = 'none';
 
-    // Si hi ha aigua seleccionada, mostrem eficiència hídrica
     if (seleccio.includes('aigua')) waterGroup.style.display = 'flex';
     else waterGroup.style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', gestionarFiltres);
 
-/**
- * Càlcul principal: Ara processa TOTS els indicadors seleccionats
- */
 function calcularConsum() {
     const checkboxes = document.querySelectorAll('.indicator-chk:checked');
     const seleccio = Array.from(checkboxes).map(cb => cb.value);
@@ -76,15 +67,15 @@ function calcularConsum() {
 
     let outputHTML = "";
     let dadesGrafic = {
-        labels: ["Històric 2024", "Històric 2025", "Projecció Optimitada (Ara)"],
+        labels: ["Històric 2024", "Històric 2025", "Projecció Optimitzada (Ara)"],
         datasets: []
     };
 
-    // Iterem per cada àrea seleccionada per generar el resum i les dades del gràfic
     seleccio.forEach(tipus => {
-        let totalAcumulat = 0;
+        // Creem DUES variables: una per l'històric (inamovible) i una altra per la projecció
+        let totalBase = 0;       
+        let totalOptimitzat = 0; 
 
-        // --- Lògica Específica per Àrea ---
         if (tipus === 'electricitat') {
             const extraSolarPercent = parseFloat(document.getElementById("solar-input").value) || 0;
             const factorSolar = 1 + (extraSolarPercent / 100);
@@ -96,22 +87,26 @@ function calcularConsum() {
                 
                 let consumMes = (dadesBase.electricitat.consumDiariLectiu * lectius) + 
                                 (dadesBase.electricitat.consumDiariVacances * vac);
-                let produccioMes = (dadesBase.electricitat.produccioDiaria * factorSolar) * diesTotalsMes[mesIndex];
                 
-                totalAcumulat += Math.max(0, consumMes - produccioMes) * multEst;
+                // Producció base (el que teníem abans, sense les plaques noves)
+                let produccioBaseMes = dadesBase.electricitat.produccioDiaria * diesTotalsMes[mesIndex];
+                // Producció optimitzada (aplicant el % extra de l'usuari)
+                let produccioOptMes = (dadesBase.electricitat.produccioDiaria * factorSolar) * diesTotalsMes[mesIndex];
+                
+                totalBase += Math.max(0, consumMes - produccioBaseMes) * multEst;
+                totalOptimitzat += Math.max(0, consumMes - produccioOptMes) * multEst;
             });
 
-            const costMantenimentInversio = extraSolarPercent > 0 ? "Inversió inclosa" : "Sense Plaques";
-            
             outputHTML += `
                 <div class="summary-item">
                     <h4>⚡ Electricitat</h4>
-                    <div class="value">${totalAcumulat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} kWh</div>
-                    <div class="sub-value">Impacte Estimat: ${(totalAcumulat * tarifes.electricitat).toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
+                    <div class="value">${totalOptimitzat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} kWh</div>
+                    <div class="sub-value">Impacte Estimat: ${(totalOptimitzat * tarifes.electricitat).toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
                 </div>
             `;
 
-            afegirDadesAlGrafic(dadesGrafic, 'Electricitat (€)', totalAcumulat * tarifes.electricitat, '#f59e0b');
+            // Passem el consum BASE per fixar els anys passats, i l'OPTIMITZAT per a la barra actual
+            afegirDadesAlGrafic(dadesGrafic, 'Electricitat (kWh)', totalBase, totalOptimitzat, '#f59e0b');
 
         } else if (tipus === 'aigua') {
             let estalviPercent = 0;
@@ -122,27 +117,29 @@ function calcularConsum() {
             const factorAigua = 1 - (estalviPercent / 100);
 
             mesosACalcular.forEach(mesIndex => {
-                totalAcumulat += dadesBase.aigua * diesLaborablesMes[mesIndex] * estacionalitat.aigua[mesIndex];
+                totalBase += dadesBase.aigua * diesLaborablesMes[mesIndex] * estacionalitat.aigua[mesIndex];
             });
             
-            totalAcumulat = totalAcumulat * factorAigua;
+            // L'optimitzat sí que rep el descompte de l'eficiència hídrica
+            totalOptimitzat = totalBase * factorAigua;
 
             outputHTML += `
                 <div class="summary-item" style="border-left-color: #0ea5e9;">
                     <h4>💧 Aigua</h4>
-                    <div class="value">${totalAcumulat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} L</div>
-                    <div class="sub-value">Impacte Estimat: ${(totalAcumulat * tarifes.aigua).toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
+                    <div class="value">${totalOptimitzat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} L</div>
+                    <div class="sub-value">Impacte Estimat: ${(totalOptimitzat * tarifes.aigua).toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
                 </div>
             `;
 
-            afegirDadesAlGrafic(dadesGrafic, 'Aigua (€)', totalAcumulat * tarifes.aigua, '#0ea5e9');
+            afegirDadesAlGrafic(dadesGrafic, 'Aigua (L)', totalBase, totalOptimitzat, '#0ea5e9');
 
         } else {
-            // Oficina, Neteja, Manteniment
             mesosACalcular.forEach(mesIndex => {
-                totalAcumulat += dadesBase[tipus] * estacionalitat[tipus][mesIndex];
+                totalBase += dadesBase[tipus] * estacionalitat[tipus][mesIndex];
             });
-            totalAcumulat = totalAcumulat * factorIPC;
+            
+            // Per a neteja/manteniment/oficina apliquem l'IPC a la projecció futura
+            totalOptimitzat = totalBase * factorIPC;
 
             let nomLabel = tipus === 'oficina' ? 'Material Oficina' : tipus === 'neteja' ? 'Neteja' : 'Manteniment';
             let colorStr = tipus === 'oficina' ? '#8b5cf6' : tipus === 'neteja' ? '#10b981' : '#64748b';
@@ -150,29 +147,29 @@ function calcularConsum() {
             outputHTML += `
                 <div class="summary-item" style="border-left-color: ${colorStr};">
                     <h4>📦 ${nomLabel}</h4>
-                    <div class="value">${totalAcumulat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
+                    <div class="value">${totalOptimitzat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} €</div>
                     <div class="sub-value">IPC inclòs (${ipc}%)</div>
                 </div>
             `;
 
-            afegirDadesAlGrafic(dadesGrafic, nomLabel + ' (€)', totalAcumulat, colorStr);
+            afegirDadesAlGrafic(dadesGrafic, nomLabel + ' (€)', totalBase, totalOptimitzat, colorStr);
         }
     });
 
     document.getElementById("calc-output").innerHTML = outputHTML;
     document.getElementById("result-box").classList.remove("hidden");
     
-    // Generar o actualitzar el cronograma
     renderitzarGrafic(dadesGrafic);
 }
 
 /**
- * Funció d'ajuda per crear les dades històriques simulades per al gràfic
+ * Ara rep el valor BASE (inamovible) i el valor OPTIMITZAT (dinàmic)
  */
-function afegirDadesAlGrafic(dadesGrafic, label, valorOptimitzat, color) {
-    // Simulem que el 2024 es va gastar un 25% més, i el 2025 un 15% més que la projecció optimitzada
-    let valor2024 = valorOptimitzat * 1.25; 
-    let valor2025 = valorOptimitzat * 1.15; 
+function afegirDadesAlGrafic(dadesGrafic, label, valorBase, valorOptimitzat, color) {
+    // Els anys 2024 i 2025 es basen estrictament en el "valorBase", sense l'optimització
+    // Simulem lleugeres variacions naturals (ex: al 2024 es va gastar un 2% més naturalment)
+    let valor2024 = valorBase * 1.02; 
+    let valor2025 = valorBase; 
 
     dadesGrafic.datasets.push({
         label: label,
@@ -182,13 +179,9 @@ function afegirDadesAlGrafic(dadesGrafic, label, valorOptimitzat, color) {
     });
 }
 
-/**
- * Dibuixa el Cronograma utilitzant Chart.js
- */
 function renderitzarGrafic(dadesGrafic) {
     const ctx = document.getElementById('history-chart').getContext('2d');
     
-    // Si ja existeix un gràfic previ, el destruïm per no encavalcar-los
     if (chartInstance) {
         chartInstance.destroy();
     }
@@ -202,19 +195,34 @@ function renderitzarGrafic(dadesGrafic) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Cronograma Comparatiu de Costos Operatius (€)',
+                    text: 'Cronograma Comparatiu de Consums i Despeses',
                     font: { size: 16, family: '-apple-system' }
                 },
                 legend: {
                     position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y.toLocaleString('ca-ES', {maximumFractionDigits: 0});
+                            }
+                            return label;
+                        }
+                    }
                 }
             },
             scales: {
                 y: {
-                    beginAtZero: true,
+                    type: 'logarithmic',
+                    display: true,
                     title: {
                         display: true,
-                        text: 'Cost Anual (€)'
+                        text: 'Unitats (Escala Logarítmica: L, kWh, €)'
                     }
                 }
             }
@@ -222,9 +230,6 @@ function renderitzarGrafic(dadesGrafic) {
     });
 }
 
-/**
- * Genera l'informe global (Vinyetes)
- */
 function aplicarPlaReduccio() {
     const resultContainer = document.getElementById("plan-results");
     
