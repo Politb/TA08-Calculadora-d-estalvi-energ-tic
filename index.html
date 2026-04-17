@@ -77,6 +77,16 @@
             border-bottom: 1px solid var(--border);
         }
 
+        .info-banner {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
         .grid-controls {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -112,6 +122,12 @@
 
         select:focus, input[type="number"]:focus {
             border-color: var(--primary);
+        }
+        
+        select:disabled, input:disabled {
+            background-color: #f1f5f9;
+            color: #94a3b8;
+            cursor: not-allowed;
         }
 
         .input-with-suffix {
@@ -162,6 +178,39 @@
             flex-shrink: 0;
         }
 
+        /* Estils per als sliders de consumibles */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #cbd5e1;
+            border-radius: 5px;
+            outline: none;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: background .15s ease-in-out;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
         button {
             background-color: var(--primary);
             color: white;
@@ -172,7 +221,7 @@
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.2s;
-            width: 100%;
+            flex: 1;
         }
 
         button:hover {
@@ -183,6 +232,7 @@
             background-color: transparent;
             color: var(--text-main);
             border: 1px solid var(--border);
+            flex: 0 0 auto;
             width: auto;
         }
 
@@ -236,7 +286,7 @@
 
         .summary-item .investment {
             font-size: 0.8rem;
-            color: #ef4444; /* Color vermell per indicar despesa inicial */
+            color: #ef4444; 
             margin-top: 0.5rem;
             font-weight: 600;
             background: #fee2e2;
@@ -311,6 +361,7 @@
             .card { padding: 1.5rem; }
             .flex-between { flex-direction: column; align-items: flex-start; gap: 1rem; }
             .flex-between button { width: 100%; }
+            .button-group { flex-direction: column; }
             .chart-container { height: 400px; }
             .summary-item .value { font-size: 1.5rem; }
         }
@@ -327,6 +378,10 @@
         <div class="card">
             <h2 class="card-title">Simulador Multicriteri</h2>
             <p class="card-subtitle">Selecciona els indicadors a avaluar simultàniament</p>
+            
+            <div class="info-banner">
+                <strong>💡 Simulació Progressiva:</strong> Clica "Calcular" per projectar un any. Les instal·lacions (com llums o aixetes) es fixaran i aplicaran als anys següents automàticament. Per als valors percentuals (ex. plaques solars), introdueix sempre l'<strong>acumulat total</strong> que desitges tenir instal·lat aquest any respecte a l'històric (el 100% base mai canvia).
+            </div>
 
             <div class="grid-controls">
                 <div class="control-group full-width">
@@ -339,10 +394,7 @@
                             <input type="checkbox" class="indicator-chk" value="aigua" onchange="gestionarFiltres()"> Consum d'Aigua
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" class="indicator-chk" value="oficina" onchange="gestionarFiltres()"> Material d'Oficina
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" class="indicator-chk" value="neteja" onchange="gestionarFiltres()"> Productes de Neteja
+                            <input type="checkbox" class="indicator-chk" value="material_neteja" onchange="gestionarFiltres()"> Material i Neteja
                         </label>
                         <label class="checkbox-label">
                             <input type="checkbox" class="indicator-chk" value="manteniment" onchange="gestionarFiltres()"> Manteniment
@@ -359,7 +411,7 @@
                 </div>
 
                 <div class="control-group" id="ipc-control-group">
-                    <label class="control-label">Variació IPC (%)</label>
+                    <label class="control-label">Variació IPC Anual (%)</label>
                     <div class="input-with-suffix">
                         <input type="number" id="ipc-input" step="0.1" value="3.1">
                         <span>%</span>
@@ -367,7 +419,7 @@
                 </div>
 
                 <div class="control-group" id="solar-control-group">
-                    <label class="control-label">Plaques Solars (Extra %)</label>
+                    <label class="control-label">Plaques Solars (Acumulat Total %)</label>
                     <div class="input-with-suffix">
                         <input type="number" id="solar-input" step="1" min="0" max="100" value="0">
                         <span>%</span>
@@ -400,14 +452,41 @@
                         </label>
                     </div>
                 </div>
+
+                <div class="control-group full-width" id="material-control-group" style="display: none;">
+                    <label class="control-label">Gestió de Consumibles (100% = Màxim Històric)</label>
+                    <div class="checkbox-group">
+                        <div style="margin-bottom: 0.5rem;">
+                            <label class="control-label" style="display: flex; justify-content: space-between;">
+                                <span>Ús de Paper Acumulat</span>
+                                <span style="color: var(--primary);"><strong><span id="val-papel">100</span>%</strong></span>
+                            </label>
+                            <input type="range" id="input-papel" min="10" max="100" value="100" oninput="document.getElementById('val-papel').innerText = this.value">
+                        </div>
+                        <div>
+                            <label class="control-label" style="display: flex; justify-content: space-between;">
+                                <span>Ús de Retoladors Acumulat</span>
+                                <span style="color: var(--primary);"><strong><span id="val-rotuladores">100</span>%</strong></span>
+                            </label>
+                            <input type="range" id="input-rotuladores" min="10" max="100" value="100" oninput="document.getElementById('val-rotuladores').innerText = this.value">
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <button onclick="calcularConsum()">Generar Resum i Cronograma</button>
+            <div class="button-group">
+                <button id="btn-calcular" onclick="calcularIProjectar()">Calcular Any 1 (2026)</button>
+                <button id="btn-reiniciar" class="btn-outline hidden" onclick="resetEstat()">🔄 Reiniciar Simulació</button>
+            </div>
         </div>
 
         <div id="result-box" class="card hidden">
-            <h2 class="card-title">Resum de la Projecció</h2>
-            <p class="card-subtitle">Dades estimades segons les variables aplicades</p>
+            <div class="flex-between" style="margin-bottom: 0.25rem;">
+                <h2 class="card-title">Resum de la Projecció</h2>
+                <span id="year-badge" style="background: var(--primary); color: white; padding: 0.2rem 0.8rem; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">Any 1</span>
+            </div>
+            <p class="card-subtitle">Dades estimades de l'any calculat segons les variables aplicades</p>
             
             <div id="calc-output" class="summary-grid">
             </div>
