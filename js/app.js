@@ -1,221 +1,364 @@
 /**
- * ASIX SUSTAINABILITY CALCULATOR - COMPLETE FULL LOGIC
- * Totes les variables i càlculs inclosos
+ * LÒGICA DE NEGOCI: CALCULADORA DE SOSTENIBILITAT ASIX
+ * Versió: 12.0 (Simulador Progressiu Multianual)
  */
 
-// 1. VARIABLES GLOBALS I DADES BASE
-let currentSimYear = 0;
-let chartInstance = null;
-let globalChartData = {
-    labels: ["Base 2024", "Base 2025"],
-    datasets: []
-};
-
-// Dades de consum per defecte
 const dadesBase = {
-    electricitat: { consumDiari: 398.55, festiu: 185.64, produccio: 43.57, anual: 105642 },
-    aigua: { anual: 62450 },
-    material: { anual: 4032 },
-    manteniment: { anual: 3400 }
+    electricitat: { consumDiariLectiu: 398.55, consumDiariVacances: 185.64, produccioDiaria: 43.57 },
+    aigua: 6245,          
+    material_neteja: 336.05,
+    manteniment: 283.45   
 };
 
-const tarifes = { electricitat: 0.16, aigua: 0.0025 }; 
+const costMensualPaper = 140.00;     
+const costMensualRotuladors = 60.00;  
+const costMensualResta = 136.05;
 
-// 2. INICIALITZACIÓ
-document.addEventListener('DOMContentLoaded', () => {
-    gestionarFiltres();
-    
-    // Assignem els events change als checkboxes
-    const checkboxes = document.querySelectorAll('.indicator-chk');
-    checkboxes.forEach(chk => {
-        chk.addEventListener('change', gestionarFiltres);
-    });
-});
+const tarifes = { electricitat: 0.16, aigua: 0.0025 };
 
-// 3. MOSTRAR/AMAGAR OPCIONS
+const diesTotalsMes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const diesLaborablesMes = [17, 20, 23, 16, 23, 20, 10, 0, 17, 23, 22, 15];
+
+const estacionalitat = {
+    electricitat:    [1.3, 1.2, 1.0, 0.9, 0.8, 0.7, 0.2, 0.0, 0.8, 1.0, 1.2, 1.3],
+    aigua:           [0.9, 0.9, 1.0, 1.1, 1.2, 1.3, 0.2, 0.0, 1.1, 1.0, 0.9, 0.9], 
+    material_neteja: [1.07, 1.0, 1.0, 1.0, 1.0, 1.13, 0.17, 0.0, 1.4, 1.0, 1.0, 0.87], 
+    manteniment:     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] 
+};
+
+let chartInstance = null;
+
+// ESTAT GLOBAL PER A LA SIMULACIÓ PROGRESSIVA
+let anyActual = 0;
+let dadesGraficGlobal = null;
+
 function gestionarFiltres() {
-    const selection = Array.from(document.querySelectorAll('.indicator-chk:checked')).map(cb => cb.value);
-    
-    const solarGroup = document.getElementById("solar-group");
-    const lightingGroup = document.getElementById("lighting-group");
-
-    if (solarGroup) solarGroup.style.display = selection.includes('electricitat') ? 'flex' : 'none';
-    if (lightingGroup) lightingGroup.style.display = selection.includes('electricitat') ? 'block' : 'none';
-}
-
-// 4. REINICIAR
-function reiniciarSimulacio() {
-    location.reload();
-}
-
-// 5. FUNCIÓ PRINCIPAL DE CÀLCUL
-function calcularIProjectar() {
-    // Agafar selectors
     const checkboxes = document.querySelectorAll('.indicator-chk:checked');
-    const selection = Array.from(checkboxes).map(cb => cb.value);
+    const seleccio = Array.from(checkboxes).map(cb => cb.value);
     
-    if (selection.length === 0) {
-        alert("Si us plau, selecciona com a mínim un indicador per avaluar.");
+    const solarGroup = document.getElementById("solar-control-group");
+    const electricSensorsGroup = document.getElementById("electric-sensors-group");
+    const waterGroup = document.getElementById("water-control-group");
+    const materialGroup = document.getElementById("material-control-group");
+
+    if (seleccio.includes('electricitat')) {
+        solarGroup.style.display = 'flex';
+        electricSensorsGroup.style.display = 'flex'; 
+    } else {
+        solarGroup.style.display = 'none';
+        electricSensorsGroup.style.display = 'none';
+    }
+
+    if (seleccio.includes('aigua')) waterGroup.style.display = 'flex'; else waterGroup.style.display = 'none';
+    if (seleccio.includes('material_neteja')) materialGroup.style.display = 'flex'; else materialGroup.style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', gestionarFiltres);
+
+function formatarVariacio(base, optimitzat) {
+    if (base === 0) return '';
+    let variacio = ((optimitzat - base) / base) * 100;
+    
+    if (variacio < -0.1) {
+        return `<div style="font-size: 0.9rem; font-weight: 700; color: #16a34a; margin-top: 0.5rem;">📉 -${Math.abs(variacio).toFixed(1)}% respecte la base inicial</div>`;
+    } else if (variacio > 0.1) {
+        return `<div style="font-size: 0.9rem; font-weight: 700; color: #dc2626; margin-top: 0.5rem;">📈 +${variacio.toFixed(1)}% respecte la base inicial</div>`;
+    } else {
+        return `<div style="font-size: 0.9rem; font-weight: 700; color: #64748b; margin-top: 0.5rem;">➖ Sense variació real</div>`;
+    }
+}
+
+function calcularIProjectar() {
+    const checkboxes = document.querySelectorAll('.indicator-chk:checked');
+    const seleccio = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (seleccio.length === 0) {
+        alert("Si us plau, selecciona com a mínim una àrea a avaluar abans de començar.");
         return;
     }
 
-    // Avançar any
-    currentSimYear++;
-    const actualYear = 2025 + currentSimYear;
-    
-    // Actualitzar textos UI
-    document.getElementById("btn-calcular").innerText = `Calcular Any ${currentSimYear + 1} (${actualYear + 1})`;
-    document.getElementById("year-badge").innerText = `Resultats: Any ${currentSimYear} (${actualYear})`;
+    anyActual++; // Sumem un any a la simulació
+    document.getElementById("year-badge").innerText = `Projecció: Any ${anyActual} (${2025 + anyActual})`;
 
-    // Variables de càlcul general
+    const periode = document.getElementById("period-select").value;
     const ipc = parseFloat(document.getElementById("ipc-input").value) || 0;
-    const factorInflacio = Math.pow(1 + (ipc / 100), currentSimYear);
-    const isAcademic = document.getElementById("period-select").value === "10";
-    const multiplicadorTemps = isAcademic ? 0.83 : 1; // Ajust per 10 mesos
     
-    let htmlResultats = "";
+    // IPC COMPOST: (1 + 0.03)^1, (1 + 0.03)^2, etc.
+    const factorIPC = Math.pow(1 + (ipc / 100), anyActual); 
+    
+    let mesosACalcular = (periode === "any") ? [0,1,2,3,4,5,6,7,8,9,10,11] : [8,9,10,11,0,1,2,3,4,5];
+    let outputHTML = "";
+    
+    // Si és el primer any, inicialitzem l'estructura del gràfic
+    let isFirstYear = (anyActual === 1);
+    if (isFirstYear) {
+        dadesGraficGlobal = {
+            labels: ["Històric 2024", "Històric 2025"],
+            datasets: []
+        };
+    }
+    
+    // Afegim l'etiqueta del nou any a l'eix X
+    dadesGraficGlobal.labels.push(`Proj. ${2025 + anyActual}`);
 
-    // Afegir etiqueta al gràfic
-    globalChartData.labels.push(`Proj. ${actualYear}`);
-
-    // --- CÀLCUL PER A CADA INDICADOR SELECCIONAT ---
-    selection.forEach(tipus => {
-        let inversio = 0;
-        let consumBase = 0;
-        let consumOptimitzat = 0;
-        let impacteEuros = 0;
+    seleccio.forEach(tipus => {
+        let totalBase = 0;       
+        let totalOptimitzat = 0; 
 
         if (tipus === 'electricitat') {
-            // Lògica Inversió
-            const plaquesSolars = parseFloat(document.getElementById("solar-input").value) || 0;
-            const chkBanys = document.getElementById("chk-luces-banos");
-            const chkPassadissos = document.getElementById("chk-luces-pasillos");
+            const extraSolarPercent = parseFloat(document.getElementById("solar-input").value) || 0;
+            const factorSolar = 1 + (extraSolarPercent / 100);
+            let estalviLlumPercent = 0;
+            let inversioLlum = 0;
 
-            inversio += (plaquesSolars * 500); // 500€ per cada 1% de plaques
-            
-            let estalviPercentual = 0;
-            if (chkBanys && chkBanys.checked) {
-                estalviPercentual += 3;
-                if (!chkBanys.disabled) inversio += 480; // Cost només el primer cop
-            }
-            if (chkPassadissos && chkPassadissos.checked) {
-                estalviPercentual += 5;
-                if (!chkPassadissos.disabled) inversio += 720; // Cost només el primer cop
-            }
+            let chkBanos = document.getElementById("chk-luces-banos");
+            let chkPasillos = document.getElementById("chk-luces-pasillos");
 
-            // Lògica Consum
-            consumBase = dadesBase.electricitat.anual * multiplicadorTemps;
-            const factorReduccio = 1 - (estalviPercentual / 100);
-            const produccioExtra = (dadesBase.electricitat.anual * (plaquesSolars / 100));
+            // L'estalvi s'aplica si està marcat (sigui nou o bloquejat d'anys anteriors)
+            if (chkBanos.checked) estalviLlumPercent += 3;
+            if (chkPasillos.checked) estalviLlumPercent += 5;
             
-            consumOptimitzat = (consumBase * factorReduccio) - produccioExtra;
-            if (consumOptimitzat < 0) consumOptimitzat = 0;
-            
-            impacteEuros = consumOptimitzat * tarifes.electricitat * factorInflacio;
-            
-            // Render Card i Gràfic
-            htmlResultats += generarCard("⚡ Electricitat", consumOptimitzat, "kWh", impacteEuros, inversio, "#eab308");
-            afegirDadesGrafic("Electricitat (kWh)", consumBase, consumOptimitzat, "#eab308");
+            // La INVERSIÓ només es cobra l'any que s'instal·la (quan el checkbox NO està disabled)
+            if (chkBanos.checked && !chkBanos.disabled) inversioLlum += 480;
+            if (chkPasillos.checked && !chkPasillos.disabled) inversioLlum += 720;
 
-        } 
-        else if (tipus === 'aigua') {
-            consumBase = dadesBase.aigua.anual * multiplicadorTemps;
-            consumOptimitzat = consumBase; // Pots afegir lògica d'estalvi d'aigua aquí
-            impacteEuros = consumOptimitzat * tarifes.aigua * factorInflacio;
+            const factorConsumLlum = 1 - (estalviLlumPercent / 100);
             
-            htmlResultats += generarCard("💧 Aigua", consumOptimitzat, "L", impacteEuros, 0, "#3b82f6");
-            afegirDadesGrafic("Aigua (L)", consumBase, consumOptimitzat, "#3b82f6");
-        }
-        else if (tipus === 'material') {
-            consumBase = dadesBase.material.anual * multiplicadorTemps;
-            consumOptimitzat = consumBase; // Podries afegir inputs de paper/retoladors
-            impacteEuros = consumOptimitzat * factorInflacio;
+            mesosACalcular.forEach(mesIndex => {
+                let multEst = estacionalitat.electricitat[mesIndex];
+                let lectius = Math.min((diesLaborablesMes[mesIndex] / 5) * 7, diesTotalsMes[mesIndex]);
+                let vac = diesTotalsMes[mesIndex] - lectius;
+                let consumMes = (dadesBase.electricitat.consumDiariLectiu * lectius) + (dadesBase.electricitat.consumDiariVacances * vac);
+                let consumMesOpt = consumMes * factorConsumLlum;
+                let prodBase = dadesBase.electricitat.produccioDiaria * diesTotalsMes[mesIndex];
+                let prodOpt = (dadesBase.electricitat.produccioDiaria * factorSolar) * diesTotalsMes[mesIndex];
+                
+                totalBase += Math.max(0, consumMes - prodBase) * multEst;
+                totalOptimitzat += Math.max(0, consumMesOpt - prodOpt) * multEst;
+            });
+
+            outputHTML += crearCardResum('⚡ Electricitat', `${totalOptimitzat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} kWh`, `Impacte Estimat: ${(totalOptimitzat * tarifes.electricitat).toLocaleString('ca-ES', {maximumFractionDigits: 0})} €`, formatarVariacio(totalBase, totalOptimitzat), inversioLlum > 0 ? `Inversió aquest any: ${inversioLlum} €` : '', '#f59e0b');
+
+            afegirOGestionarDataset('Electricitat (kWh)', totalBase, totalOptimitzat, '#f59e0b', 'y', isFirstYear);
+
+        } else if (tipus === 'aigua') {
+            let estalviPercent = 0;
+            if (document.getElementById("chk-aireadores").checked) estalviPercent += 12; 
+            if (document.getElementById("chk-cisternas").checked) estalviPercent += 20;  
+            if (document.getElementById("chk-sensores").checked) estalviPercent += 15;
             
-            htmlResultats += generarCard("📦 Material i Neteja", impacteEuros, "€", impacteEuros, 0, "#8b5cf6");
-            afegirDadesGrafic("Material (€)", consumBase, impacteEuros, "#8b5cf6");
-        }
-        else if (tipus === 'manteniment') {
-            consumBase = dadesBase.manteniment.anual * multiplicadorTemps;
-            consumOptimitzat = consumBase;
-            impacteEuros = consumOptimitzat * factorInflacio;
-            
-            htmlResultats += generarCard("🔧 Manteniment", impacteEuros, "€", impacteEuros, 0, "#64748b");
-            afegirDadesGrafic("Manteniment (€)", consumBase, impacteEuros, "#64748b");
+            const factorAigua = 1 - (estalviPercent / 100);
+            mesosACalcular.forEach(mesIndex => {
+                totalBase += dadesBase.aigua * diesLaborablesMes[mesIndex] * estacionalitat.aigua[mesIndex];
+            });
+            totalOptimitzat = totalBase * factorAigua;
+
+            outputHTML += crearCardResum('💧 Aigua', `${totalOptimitzat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} L`, `Impacte Estimat: ${(totalOptimitzat * tarifes.aigua).toLocaleString('ca-ES', {maximumFractionDigits: 0})} €`, formatarVariacio(totalBase, totalOptimitzat), '', '#0ea5e9');
+
+            afegirOGestionarDataset('Aigua (L)', totalBase, totalOptimitzat, '#0ea5e9', 'y', isFirstYear);
+
+        } else if (tipus === 'material_neteja') {
+            let factorPapel = document.getElementById("input-papel").value / 100;
+            let factorRotuladores = document.getElementById("input-rotuladores").value / 100;
+
+            mesosACalcular.forEach(mesIndex => {
+                let est = estacionalitat.material_neteja[mesIndex];
+                totalBase += dadesBase.material_neteja * est;
+                
+                let costMesOpt = (costMensualPaper * factorPapel) + (costMensualRotuladors * factorRotuladores) + costMensualResta;
+                totalOptimitzat += costMesOpt * est * factorIPC;
+            });
+
+            let baseSenseIPC = totalBase;
+            let optSenseIPC = totalOptimitzat / factorIPC;
+            let reduccioPercentual = Math.max(0, ((baseSenseIPC - optSenseIPC) / baseSenseIPC) * 100);
+            let usPercentual = 100 - reduccioPercentual;
+
+            let ipcAplicatPercent = ((factorIPC - 1) * 100).toFixed(1);
+
+            outputHTML += crearCardResum('📦 Material i Neteja', `${totalOptimitzat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} €`, `IPC Acumulat aplicat (${ipcAplicatPercent}%)`, `<div style="font-size: 0.85rem; color: #8b5cf6; margin-top: 0.2rem; font-weight: bold;">🔻 ${reduccioPercentual.toFixed(1)}% reducció d'ús real vs base</div>`, '', '#8b5cf6');
+
+            afegirOGestionarDataset('Material i Neteja (€)', totalBase, totalOptimitzat, '#8b5cf6', 'y', isFirstYear);
+            afegirOGestionarDataset('Ús de Material (%)', 100, usPercentual, '#ec4899', 'y1', isFirstYear);
+
+        } else {
+            mesosACalcular.forEach(mesIndex => {
+                totalBase += dadesBase.manteniment * estacionalitat.manteniment[mesIndex];
+            });
+            totalOptimitzat = totalBase * factorIPC;
+            let ipcAplicatPercent = ((factorIPC - 1) * 100).toFixed(1);
+
+            outputHTML += crearCardResum('🔧 Manteniment', `${totalOptimitzat.toLocaleString('ca-ES', {maximumFractionDigits: 0})} €`, `IPC Acumulat aplicat (${ipcAplicatPercent}%)`, formatarVariacio(totalBase, totalOptimitzat), '', '#64748b');
+
+            afegirOGestionarDataset('Manteniment (€)', totalBase, totalOptimitzat, '#64748b', 'y', isFirstYear);
         }
     });
 
-    // Mostrar resultats a l'HTML
-    document.getElementById("calc-output").innerHTML = htmlResultats;
+    // Actualitzem interfície
+    document.getElementById("calc-output").innerHTML = outputHTML;
     document.getElementById("result-box").classList.remove("hidden");
-    
-    // Renderitzar Gràfic
-    actualitzarGrafic();
+    document.getElementById("btn-reiniciar").classList.remove("hidden");
+    document.getElementById("btn-calcular").innerText = `Calcular Any ${anyActual + 1} (${2026 + anyActual})`;
 
-    // Bloquejar controls d'inversió per no cobrar-los dos cops el següent any
-    bloquejarInversionsFixes();
+    renderitzarGrafic(dadesGraficGlobal);
+
+    // Bloquegem les opcions que ja no es poden desfer per a l'any següent
+    bloquejarControlsAplicats();
+    
+    // Actualitzem el pla textual
+    if (!document.getElementById("plan-results").classList.contains("hidden")) aplicarPlaReduccio();
 }
 
-// 6. FUNCIONS AUXILIARS DE RENDERITZAT
-function generarCard(títol, valor, unitat, impacte, inversio, color) {
-    let html = `
-    <div class="summary-card" style="border-top-color: ${color}">
-        <h3>${títol}</h3>
-        <div class="val">${valor.toLocaleString('es-ES', {maximumFractionDigits: 0})} ${unitat}</div>
-        <div class="impact">Impacte Estimat: ${impacte.toLocaleString('es-ES', {style: 'currency', currency: 'EUR', maximumFractionDigits: 0})}</div>`;
+function afegirOGestionarDataset(label, valorBase, valorOptimitzat, color, axisID, isFirstYear) {
+    let dataset = dadesGraficGlobal.datasets.find(ds => ds.label === label);
     
-    if (inversio > 0) {
-        html += `<div class="invest">Inversió Requerida: ${inversio.toLocaleString('es-ES', {style: 'currency', currency: 'EUR', maximumFractionDigits: 0})}</div>`;
-    }
-    
-    html += `</div>`;
-    return html;
-}
-
-function afegirDadesGrafic(label, base, optimitzat, color) {
-    let dataset = globalChartData.datasets.find(ds => ds.label === label);
+    // Si és el primer any que simulem, creem el dataset i li posem l'històric inicial
     if (!dataset) {
-        // Si és el primer cop, afegim l'històric (Base 2024 i Base 2025)
         dataset = {
             label: label,
-            data: [base * 0.98, base], // Simulem un petit increment històric
+            data: [valorBase * (axisID === 'y1' ? 1 : 1.02), valorBase], // Inventem petita variació a 2024 per no fer-ho pla
             backgroundColor: color,
-            borderRadius: 4
+            borderRadius: 4,
+            yAxisID: axisID
         };
-        globalChartData.datasets.push(dataset);
+        dadesGraficGlobal.datasets.push(dataset);
     }
-    // Afegim la projecció
-    dataset.data.push(optimitzat);
+    
+    // Afegim el valor del nou any projectat a la llista d'aquest dataset
+    dataset.data.push(valorOptimitzat);
 }
 
-function actualitzarGrafic() {
+function bloquejarControlsAplicats() {
+    // Les àrees principals no es poden canviar un cop començada la simulació
+    document.querySelectorAll('.indicator-chk').forEach(chk => chk.disabled = true);
+    document.getElementById("period-select").disabled = true;
+
+    // Les mesures d'instal·lació ja fetes queden bloquejades (però checked = true per seguir estalviant)
+    document.querySelectorAll('#chk-luces-banos, #chk-luces-pasillos, #chk-aireadores, #chk-cisternas, #chk-sensores').forEach(chk => {
+        if (chk.checked) chk.disabled = true;
+    });
+}
+
+function resetEstat() {
+    anyActual = 0;
+    dadesGraficGlobal = null;
+    
+    // Desbloquegem tot
+    document.querySelectorAll('input, select').forEach(element => element.disabled = false);
+    
+    // Resetejem botons i panells
+    document.getElementById('btn-calcular').innerText = "Calcular Any 1 (2026)";
+    document.getElementById('btn-reiniciar').classList.add('hidden');
+    document.getElementById('result-box').classList.add('hidden');
+    
+    if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+    }
+}
+
+function crearCardResum(titol, valor, subValor, extra1, extra2, color) {
+    return `
+        <div class="summary-item" style="border-left-color: ${color};">
+            <h4>${titol}</h4>
+            <div class="value">${valor}</div>
+            <div class="sub-value">${subValor}</div>
+            ${extra1}
+            ${extra2 ? `<div class="investment" style="margin-top:0.75rem;display:inline-block;padding:0.25rem 0.5rem;background:#fee2e2;color:#ef4444;border-radius:4px;font-size:0.8rem;font-weight:bold;">${extra2}</div>` : ''}
+        </div>
+    `;
+}
+
+function renderitzarGrafic(dades) {
     const ctx = document.getElementById('history-chart').getContext('2d');
     
     if (chartInstance) {
         chartInstance.destroy();
     }
-    
+
     chartInstance = new Chart(ctx, {
         type: 'bar',
-        data: globalChartData,
+        data: dades,
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'top' } },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Cronograma Multi-Any de Consums i Despeses',
+                    font: { size: 16, family: '-apple-system' }
+                },
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== null) {
+                                if (context.dataset.yAxisID === 'y1') {
+                                    label += context.parsed.y.toFixed(1) + '%';
+                                } else {
+                                    label += context.parsed.y.toLocaleString('ca-ES', {maximumFractionDigits: 0});
+                                }
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
             scales: {
-                y: { type: 'logarithmic', display: true } // Logarithmic va bé quan barreges L d'aigua amb €
+                y: {
+                    type: 'logarithmic',
+                    display: true,
+                    position: 'left',
+                    title: { display: true, text: 'Consums i Despeses (Escala Logarítmica: L, kWh, €)' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    min: 0,
+                    max: 100,
+                    title: { display: true, text: 'Percentatge d\'Ús (%)' },
+                    grid: { drawOnChartArea: false }
+                }
             }
         }
     });
 }
 
-function bloquejarInversionsFixes() {
-    // Un cop calculat, no deixem desmarcar els indicadors principals actius
-    document.querySelectorAll('.indicator-chk:checked').forEach(chk => chk.disabled = true);
+function aplicarPlaReduccio() {
+    const resultContainer = document.getElementById("plan-results");
     
-    // Bloquegem les instal·lacions ja "comprades"
-    const banys = document.getElementById("chk-luces-banos");
-    const pass = document.getElementById("chk-luces-pasillos");
+    const percPapel = document.getElementById("input-papel") ? document.getElementById("input-papel").value : 100;
+    const percRotuladores = document.getElementById("input-rotuladores") ? document.getElementById("input-rotuladores").value : 100;
     
-    if (banys && banys.checked) banys.disabled = true;
-    if (pass && pass.checked) pass.disabled = true;
+    resultContainer.innerHTML = `
+        <div class="plan-grid">
+            <div class="plan-card-item">
+                <h3>⚡ Energia i Aigua</h3>
+                <ul>
+                    <li><strong>Plaques Solars:</strong> Instal·lació de mòduls fotovoltaics per a l'autoconsum, reduint dràsticament la dependència de la xarxa.</li>
+                    <li><strong>Llum Automàtica:</strong> Implementació de sensors de presència intel·ligents a les aules i passadissos per evitar el consum fantasma.</li>
+                    <li><strong>Sistemes Hídrics:</strong> Col·locació d'airejadors, electrovàlvules de tall automàtic i sensors IoT per evitar fugues.</li>
+                </ul>
+            </div>
+            
+            <div class="plan-card-item">
+                <h3>📦 Material i Neteja</h3>
+                <div style="background-color: #f1f5f9; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; border-left: 4px solid #8b5cf6;">
+                    <p style="font-size: 0.85rem; color: var(--text-main); margin: 0;">
+                        <strong>💡 Sobre la reducció de consumibles:</strong> El <strong>100%</strong> equival al màxim històric gastat per l'institut. A mesura que es baixa el percentatge, se simula una reducció en l'ús. El límit mínim és del <strong>10%</strong> per garantir que el centre mai es quedi sense estoc de paper ni retoladors per a l'activitat diària bàsica.
+                    </p>
+                </div>
+                <ul>
+                    <li><strong>Digitalització (Ús al ${percPapel}%):</strong> Reducció del consum de paper promovent entregues digitals al campus virtual i evitant impressions innecessàries.</li>
+                    <li><strong>Materials Reutilitzables (Ús al ${percRotuladores}%):</strong> Control rigorós sobre la compra i reposició de retoladors d'aula, prioritzant opcions recarregables.</li>
+                    <li><strong>Compra Centralitzada:</strong> Unificació de comandes per reduir embalatges i petjada de carboni en el transport.</li>
+                </ul>
+            </div>
+        </div>
+    `;
+
+    resultContainer.classList.remove("hidden");
 }
