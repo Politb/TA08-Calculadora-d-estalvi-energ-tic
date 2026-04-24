@@ -80,6 +80,12 @@ function formatarVariacio(base, optimitzat) {
 }
 
 function calcularIProjectar() {
+  // Comprovació del límit de 50 anys
+  if (anyActual >= 50) {
+    alert("Has assolit el límit màxim de la simulació (50 anys).");
+    return;
+  }
+
   const checkboxes = document.querySelectorAll(".indicator-chk:checked");
   const seleccio = Array.from(checkboxes).map((cb) => cb.value);
 
@@ -226,7 +232,7 @@ function calcularIProjectar() {
 
         let costMesOpt =
           costMensualPaper * factorPapel +
-          costMensualRotuladors * factorRotuladores +
+          costMensualRotuladores * factorRotuladores +
           costMensualResta;
         totalOptimitzat += costMesOpt * est * factorIPC;
       });

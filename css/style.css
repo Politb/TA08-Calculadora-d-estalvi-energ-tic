@@ -232,6 +232,12 @@ select:focus, input[type="number"]:focus {
   border-radius: 4px;
 }
 
+/* --- COLORS DELS ÀMBITS --- */
+.indicator-group-electricitat { border-left: 5px solid #f59e0b !important; padding-left: 10px; }
+.indicator-group-aigua { border-left: 5px solid #0ea5e9 !important; padding-left: 10px; }
+.indicator-group-material_neteja { border-left: 5px solid #8b5cf6 !important; padding-left: 10px; }
+.indicator-group-manteniment { border-left: 5px solid #64748b !important; padding-left: 10px; }
+
 /* --- MATERIAL SLIDERS --- */
 .material-section {
   margin-bottom: 1.5rem;

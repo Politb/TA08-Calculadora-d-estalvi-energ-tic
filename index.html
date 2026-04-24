@@ -178,7 +178,6 @@
             flex-shrink: 0;
         }
 
-        /* Estils per als sliders de consumibles */
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
@@ -380,12 +379,12 @@
             <p class="card-subtitle">Selecciona els indicadors a avaluar simultàniament</p>
             
             <div class="info-banner">
-                <strong>💡 Simulació Progressiva:</strong> Clica "Calcular" per projectar un any. Les instal·lacions (com llums o aixetes) es fixaran i aplicaran als anys següents automàticament. Per als valors percentuals (ex. plaques solars), introdueix sempre l'<strong>acumulat total</strong> que desitges tenir instal·lat aquest any respecte a l'històric (el 100% base mai canvia).
+                <strong>💡 Simulació Progressiva:</strong> Clica "Calcular" per projectar un any. Les instal·lacions es fixaran automàticament. La gràfica mostrarà en gris el resultat que tindries si no haguessis aplicat mesures.
             </div>
 
             <div class="grid-controls">
                 <div class="control-group full-width">
-                    <label class="control-label">Àrees a incloure en el càlcul (Pots marcar-ne vàries)</label>
+                    <label class="control-label">Àrees a incloure en el càlcul</label>
                     <div class="checkbox-group checkbox-grid">
                         <label class="checkbox-label">
                             <input type="checkbox" class="indicator-chk" value="electricitat" onchange="gestionarFiltres()" checked> Consum Elèctric
