@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panell de Sostenibilitat ASIX</title>
+    <title>ASIX Sustainability Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
     <header>
-        <h1>Panell de Sostenibilitat ASIX</h1>
-        <p>Eina de simulació i projecció estratègica de recursos</p>
+        <h1>ASIX Sustainability Dashboard</h1>
+        <p>Strategic resource simulation and projection tool</p>
     </header>
 
     <div class="container">
@@ -19,42 +19,42 @@
             
             <div class="panel-controls">
                 <div class="card">
-                    <h2 class="card-title">Simulador Multicriteri</h2>
-                    <p class="card-subtitle">Selecciona els indicadors a avaluar simultàniament</p>
+                    <h2 class="card-title">Multi-criteria Simulator</h2>
+                    <p class="card-subtitle">Select the indicators to evaluate simultaneously</p>
                     
                     <div class="info-banner">
-                        <strong>💡 Simulació Progressiva:</strong> Clica "Calcular" per projectar un any. Les instal·lacions es fixaran. La gràfica mostrarà en gris l'històric sense canvis.
+                        <strong>💡 Progressive Simulation:</strong> Click "Calculate" to project one year. Installations will be fixed. The chart will show the baseline without changes in grey.
                     </div>
 
                     <div class="grid-controls">
                         <div class="control-group full-width">
-                            <label class="control-label">Àrees a incloure en el càlcul</label>
+                            <label class="control-label">Areas to include in the calculation</label>
                             <div class="checkbox-group checkbox-grid">
                                 <label class="checkbox-label indicator-group-electricitat">
-                                    <input type="checkbox" class="indicator-chk" value="electricitat" onchange="gestionarFiltres()" checked> Consum Elèctric
+                                    <input type="checkbox" class="indicator-chk" value="electricitat" onchange="gestionarFiltres()" checked> Electricity Consumption
                                 </label>
                                 <label class="checkbox-label indicator-group-aigua">
-                                    <input type="checkbox" class="indicator-chk" value="aigua" onchange="gestionarFiltres()"> Consum d'Aigua
+                                    <input type="checkbox" class="indicator-chk" value="aigua" onchange="gestionarFiltres()"> Water Consumption
                                 </label>
                                 <label class="checkbox-label indicator-group-material_neteja">
-                                    <input type="checkbox" class="indicator-chk" value="material_neteja" onchange="gestionarFiltres()"> Material i Neteja
+                                    <input type="checkbox" class="indicator-chk" value="material_neteja" onchange="gestionarFiltres()"> Material & Cleaning
                                 </label>
                                 <label class="checkbox-label indicator-group-manteniment">
-                                    <input type="checkbox" class="indicator-chk" value="manteniment" onchange="gestionarFiltres()"> Manteniment
+                                    <input type="checkbox" class="indicator-chk" value="manteniment" onchange="gestionarFiltres()"> Maintenance
                                 </label>
                             </div>
                         </div>
 
                         <div class="control-group">
-                            <label class="control-label">Període d'Avaluació</label>
+                            <label class="control-label">Evaluation Period</label>
                             <select id="period-select">
-                                <option value="any">Any Natural (12 mesos)</option>
-                                <option value="curs">Curs Escolar (10 mesos)</option>
+                                <option value="any">Calendar Year (12 months)</option>
+                                <option value="curs">School Year (10 months)</option>
                             </select>
                         </div>
 
                         <div class="control-group" id="ipc-control-group">
-                            <label class="control-label">Variació IPC Anual (%)</label>
+                            <label class="control-label">Annual CPI Variation (%)</label>
                             <div class="input-with-suffix">
                                 <input type="number" id="ipc-input" step="0.1" value="3.1">
                                 <span>%</span>
@@ -62,7 +62,7 @@
                         </div>
 
                         <div class="control-group" id="solar-control-group">
-                            <label class="control-label">Plaques Solars (Acumulat %)</label>
+                            <label class="control-label">Solar Panels (Accumulated %)</label>
                             <div class="input-with-suffix">
                                 <input type="number" id="solar-input" step="1" min="0" max="100" value="0">
                                 <span>%</span>
@@ -70,45 +70,45 @@
                         </div>
 
                         <div class="control-group full-width" id="electric-sensors-group" style="display: none;">
-                            <label class="control-label">Eficiència Lumínica (Sensors de Presència)</label>
+                            <label class="control-label">Lighting Efficiency (Presence Sensors)</label>
                             <div class="checkbox-group checkbox-grid">
-                                <label class="checkbox-label" title="Cost estimat: 480€ (8 banys x 60€)">
-                                    <input type="checkbox" id="chk-luces-banos"> 8 Banys automàtics (-3%)
+                                <label class="checkbox-label" title="Estimated cost: 480€ (8 bathrooms x 60€)">
+                                    <input type="checkbox" id="chk-luces-banos"> 8 Automatic bathrooms (-3%)
                                 </label>
-                                <label class="checkbox-label" title="Cost estimat: 720€ (3 plantes x 240€)">
-                                    <input type="checkbox" id="chk-luces-pasillos"> 3 Plantes passadissos (-5%)
+                                <label class="checkbox-label" title="Estimated cost: 720€ (3 floors x 240€)">
+                                    <input type="checkbox" id="chk-luces-pasillos"> 3 Floors of corridors (-5%)
                                 </label>
                             </div>
                         </div>
 
                         <div class="control-group full-width" id="water-control-group" style="display: none;">
-                            <label class="control-label">Pla d'Eficiència Hídrica</label>
+                            <label class="control-label">Water Efficiency Plan</label>
                             <div class="checkbox-group checkbox-grid">
                                 <label class="checkbox-label">
-                                    <input type="checkbox" id="chk-aireadores"> Airejadors eficients (-12%)
+                                    <input type="checkbox" id="chk-aireadores"> Efficient aerators (-12%)
                                 </label>
                                 <label class="checkbox-label">
-                                    <input type="checkbox" id="chk-cisternas"> Talls automàtics (-20%)
+                                    <input type="checkbox" id="chk-cisternas"> Automatic shut-offs (-20%)
                                 </label>
                                 <label class="checkbox-label">
-                                    <input type="checkbox" id="chk-sensores"> Monitorització IoT (-15%)
+                                    <input type="checkbox" id="chk-sensores"> IoT Monitoring (-15%)
                                 </label>
                             </div>
                         </div>
 
                         <div class="control-group full-width" id="material-control-group" style="display: none;">
-                            <label class="control-label">Gestió de Consumibles (100% = Màxim Històric)</label>
+                            <label class="control-label">Consumables Management (100% = Historical Max)</label>
                             <div class="checkbox-group">
                                 <div style="margin-bottom: 0.5rem;">
                                     <label class="control-label" style="display: flex; justify-content: space-between;">
-                                        <span>Ús de Paper</span>
+                                        <span>Paper Usage</span>
                                         <span style="color: var(--primary);"><strong><span id="val-papel">100</span>%</strong></span>
                                     </label>
                                     <input type="range" id="input-papel" min="10" max="100" value="100" oninput="document.getElementById('val-papel').innerText = this.value">
                                 </div>
                                 <div>
                                     <label class="control-label" style="display: flex; justify-content: space-between;">
-                                        <span>Ús de Retoladors</span>
+                                        <span>Marker Usage</span>
                                         <span style="color: var(--primary);"><strong><span id="val-rotuladores">100</span>%</strong></span>
                                     </label>
                                     <input type="range" id="input-rotuladores" min="10" max="100" value="100" oninput="document.getElementById('val-rotuladores').innerText = this.value">
@@ -119,18 +119,18 @@
                     </div>
 
                     <div class="button-group">
-                        <button id="btn-calcular" onclick="calcularIProjectar()">Calcular Any 1</button>
-                        <button id="btn-reiniciar" class="btn-outline hidden" onclick="resetEstat()">🔄 Reiniciar</button>
+                        <button id="btn-calcular" onclick="calcularIProjectar()">Calculate Year 1</button>
+                        <button id="btn-reiniciar" class="btn-outline hidden" onclick="resetEstat()">🔄 Reset</button>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="flex-between" style="margin-bottom: 0.5rem;">
                         <div>
-                            <h2 class="card-title">Pla d'Acció</h2>
-                            <p class="card-subtitle" style="border: none; padding: 0; margin: 0;">Detall de mesures estratègiques</p>
+                            <h2 class="card-title">Action Plan</h2>
+                            <p class="card-subtitle" style="border: none; padding: 0; margin: 0;">Detail of strategic measures</p>
                         </div>
-                        <button class="btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="aplicarPlaReduccio()">Veure</button>
+                        <button class="btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="aplicarPlaReduccio()">View</button>
                     </div>
                     <div id="plan-results" class="hidden"></div>
                 </div>
@@ -138,10 +138,10 @@
 
             <div id="result-box" class="card panel-results hidden">
                 <div class="flex-between" style="margin-bottom: 0.5rem;">
-                    <h2 class="card-title">Resum de la Projecció</h2>
-                    <span id="year-badge" style="background: var(--primary); color: white; padding: 0.2rem 0.8rem; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">Any 1</span>
+                    <h2 class="card-title">Projection Summary</h2>
+                    <span id="year-badge" style="background: var(--primary); color: white; padding: 0.2rem 0.8rem; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">Year 1</span>
                 </div>
-                <p class="card-subtitle">Dades estimades de l'any calculat</p>
+                <p class="card-subtitle">Estimated data for the calculated year</p>
                 
                 <div id="calc-output" class="summary-grid"></div>
 
